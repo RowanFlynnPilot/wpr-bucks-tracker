@@ -103,6 +103,7 @@ Everything else follows the config.
 `Tab` (tab opens), `Share`, `Calendar` (add-to-calendar), `Mini Click`,
 `Coverage Click` (newsroom links), `Sponsor Click`, `Box Score` (game clicks
 into the film room, tagged `schedule`/`hero`), `Film Game` (film-room game
+picks), `Player Card` (box-score row opens), `Shot Filter` (shot-chart player
 picks), `Bookmark` (copy link), `Widget Error` (render failures — should be ~0).
 Dashboard: plausible.io, site `rowanflynnpilot.github.io`.
 

@@ -813,6 +813,64 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 .box-table td.player .starter { color: #b8905a; font-weight: 700; }
 .box-table tbody tr:last-child td { border-bottom: none; }
 
+/* Rows open into season stat sheets. */
+.box-row.clickable { cursor: pointer; transition: background 0.12s; }
+.box-row.clickable:hover td,
+.box-row.clickable:focus-visible td,
+.box-row.open td { background: var(--cream); }
+.box-row.clickable:focus-visible { outline: 2px solid var(--wpr-teal); outline-offset: -2px; }
+.box-row.open td.player { color: var(--team); }
+
+.box-expand td {
+  background: var(--cream);
+  border-bottom: 2px solid var(--team);
+  padding: 12px 14px 14px;
+  white-space: normal;
+  text-align: left;
+}
+
+.player-season { display: flex; align-items: center; gap: 14px; }
+
+.player-season img {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--cream-deep);
+  flex-shrink: 0;
+}
+
+.ps-body { flex: 1; min-width: 0; }
+.ps-name { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; }
+.ps-meta { font-family: var(--font-data); font-size: 0.72rem; color: var(--ink-soft); font-weight: 400; }
+
+.ps-tiles { display: flex; flex-wrap: wrap; gap: 6px 8px; margin-top: 8px; }
+
+.ps-tile {
+  font-family: var(--font-data);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.ps-tile b { color: var(--team); font-size: 0.82rem; }
+.ps-note { font-size: 0.72rem; color: var(--ink-soft); margin-top: 8px; font-family: var(--font-body); }
+
+/* Shot-chart player filter */
+.shot-filter { margin-bottom: 10px; }
+
+.shot-statline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
 .linescore { border-collapse: collapse; font-size: 0.85rem; margin-bottom: 16px; }
 .linescore th {
   font-size: 0.68rem;
@@ -888,19 +946,36 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 .shot-swatch.made { background: var(--team-soft); }
 .shot-swatch.miss { border: 2px solid var(--loss); }
 
-.team-stats { width: 100%; max-width: 460px; border-collapse: collapse; font-size: 0.85rem; }
+.team-stats { width: 100%; max-width: 620px; border-collapse: collapse; font-size: 0.88rem; }
+
 .team-stats th {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--team);
+  text-align: right;
+  padding: 6px 18px 8px;
+  border-bottom: 2px solid var(--team);
+  width: 120px;
+  white-space: nowrap;
+}
+
+.team-stats th:first-child { text-align: left; width: auto; }
+
+.team-stats td {
+  font-family: var(--font-data);
+  font-size: 0.85rem;
   color: var(--ink-soft);
   text-align: right;
-  padding: 4px 10px;
-  border-bottom: 1px solid var(--line);
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--cream-deep);
 }
-.team-stats th:first-child { text-align: left; }
-.team-stats td { font-family: var(--font-data); text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--cream-deep); }
-.team-stats td.label { font-family: var(--font-body); font-weight: 600; text-align: left; }
+
+.team-stats tbody tr:last-child td { border-bottom: none; }
+.team-stats tbody tr:nth-child(even) td { background: rgba(238, 225, 198, 0.3); }
+.team-stats td.label { font-family: var(--font-body); font-weight: 600; color: var(--ink); text-align: left; }
+.team-stats td.lead { color: var(--team); font-weight: 700; }
 
 /* ---------- Injury report ---------- */
 

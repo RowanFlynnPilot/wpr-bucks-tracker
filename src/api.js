@@ -221,6 +221,38 @@ async function loadInjuries() {
   return items
 }
 
+// ---------- Player season stat sheets (box-score cards) ----------
+
+const playerSeasons = new Map()
+
+export function fetchPlayerSeason(athleteId) {
+  if (!playerSeasons.has(athleteId)) {
+    const p = loadPlayerSeason(athleteId)
+    p.catch(() => playerSeasons.delete(athleteId))
+    playerSeasons.set(athleteId, p)
+  }
+  return playerSeasons.get(athleteId)
+}
+
+async function loadPlayerSeason(athleteId) {
+  const a = await getJson(`${CORE}/seasons/${SEASON}/athletes/${athleteId}?lang=en&region=us`)
+  let stats = null
+  if (a.statistics?.$ref) {
+    const st = await getJson(a.statistics.$ref.replace(/^http:/, 'https:'))
+    stats = {}
+    for (const cat of st.splits?.categories ?? []) {
+      for (const s of cat.stats) stats[s.name] = s.displayValue
+    }
+  }
+  return {
+    name: a.displayName,
+    headshot: a.headshot?.href ?? null,
+    position: a.position?.abbreviation ?? '',
+    jersey: a.jersey ?? '',
+    stats,
+  }
+}
+
 // ---------- Per-game detail (Film room) ----------
 
 const gameDetails = new Map()
@@ -248,37 +280,35 @@ async function loadGameDetail(eventId) {
     quarters: (c.linescores ?? []).map((l) => l.displayValue),
   })
 
-  // Win probability, in Bucks terms (ESPN publishes the home side's).
-  const wpRaw = d.winprobability ?? []
-  const winProb = wpRaw.map((w) => (usHome ? w.homeWinPercentage : 1 - w.homeWinPercentage))
-
-  // The turning point (single largest win-probability swing) and the swing
-  // plays (every ≥5% shift) — the dots on the game-flow chart. NBA scoring is
-  // too dense to mark every basket; the swings are the ones that mattered.
+  // The score flow: Bucks margin after every scoring play, on a real elapsed-
+  // time axis (quarters are 12 minutes, OTs are 5). The clock arrives as
+  // "M:SS" above a minute and "SS.d" under one.
   const plays = d.plays ?? []
-  const playById = new Map(plays.map((p) => [p.id, p]))
-  let turning = null
-  const swings = []
-  for (let i = 1; i < wpRaw.length; i++) {
-    const delta = Math.abs(wpRaw[i].homeWinPercentage - wpRaw[i - 1].homeWinPercentage)
-    if (delta >= 0.05) swings.push({ index: i, delta })
-    if (turning && delta <= turning.delta) continue
-    const play = playById.get(wpRaw[i].playId)
-    if (!play) continue
-    turning = {
-      delta,
-      index: i,
-      text: play.text,
-      period: play.period?.number ?? 0,
-      clock: play.clock?.displayValue ?? '',
-      ourSwing: (usHome ? 1 : -1) * (wpRaw[i].homeWinPercentage - wpRaw[i - 1].homeWinPercentage),
-    }
+  const periodSec = (p) => (p <= 4 ? 720 : 300)
+  const elapsed = (periodNum, clock) => {
+    let remaining
+    if (!clock) remaining = 0
+    else if (clock.includes(':')) {
+      const [m, s] = clock.split(':')
+      remaining = Number(m) * 60 + Number(s)
+    } else remaining = parseFloat(clock)
+    if (!Number.isFinite(remaining)) remaining = 0
+    let base = 0
+    for (let q = 1; q < periodNum; q++) base += periodSec(q)
+    return base + (periodSec(periodNum) - remaining)
   }
-  swings.sort((a, b) => b.delta - a.delta)
-  swings.length = Math.min(swings.length, 14) // keep the chart readable
+  const maxPeriod = Math.max(4, ...plays.map((p) => p.period?.number ?? 0))
+  const totalSec = Array.from({ length: maxPeriod }, (_, i) => periodSec(i + 1)).reduce((a, b) => a + b, 0)
+  const flow = plays
+    .filter((p) => p.scoringPlay && p.scoreValue > 0)
+    .map((p) => ({
+      t: elapsed(p.period?.number ?? 1, p.clock?.displayValue ?? ''),
+      margin: usHome ? p.homeScore - p.awayScore : p.awayScore - p.homeScore,
+    }))
 
   // Bucks field-goal attempts with usable coordinates. ESPN marks free throws
   // and dead plays with INT_MIN-ish sentinel coords — those aren't chartable.
+  // The shooter id comes from the play's participants and matches the box score.
   const shots = plays
     .filter((p) =>
       p.shootingPlay && p.team?.id === TEAM_ID && p.coordinate &&
@@ -291,6 +321,7 @@ async function loadGameDetail(eventId) {
       y: p.coordinate.y,
       made: p.scoringPlay === true,
       three: (p.pointsAttempted ?? p.scoreValue) === 3 || /three point/i.test(p.text ?? ''),
+      shooterId: p.participants?.[0]?.athlete?.id ?? null,
       text: p.text,
     }))
 
@@ -341,6 +372,7 @@ async function loadGameDetail(eventId) {
     rows: (group?.athletes ?? [])
       .filter((a) => (a.stats ?? []).length > 0)
       .map((a) => ({
+        id: a.athlete?.id ?? null,
         name: a.athlete?.shortName ?? a.athlete?.displayName ?? '',
         jersey: a.athlete?.jersey ?? '',
         starter: a.starter === true,
@@ -348,5 +380,5 @@ async function loadGameDetail(eventId) {
       })),
   }
 
-  return { usHome, home: side(home), away: side(away), winProb, turning, swings, shots, scoring, leaders, teamStats, boxScore }
+  return { usHome, home: side(home), away: side(away), flow, maxPeriod, totalSec, shots, scoring, leaders, teamStats, boxScore }
 }

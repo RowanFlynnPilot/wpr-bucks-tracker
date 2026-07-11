@@ -42,9 +42,13 @@ not a data cache; don't let it become one.
   being traded — the ref approach renders him; a roster join drops him silently).
 - `fetchInjuries()` — core API injuries, athlete refs resolved. Empty = healthy.
 - `fetchGameDetail(eventId)` — the summary endpoint, per game on demand, cached
-  in a module Map: linescores, win probability (Bucks perspective), the turning
-  point (max WP swing), chartable shots (free throws carry INT_MIN sentinel
-  coords — filtered), scoring plays for runs, game leaders, team stats.
+  in a module Map: linescores, the score-flow timeline (Bucks margin on a real
+  elapsed-time axis — the actual scoreboard, deliberately not ESPN's win-prob
+  model), chartable shots with shooter ids (free throws carry INT_MIN sentinel
+  coords — filtered), scoring plays for runs, game leaders, team stats, and the
+  Bucks player box (ids match play participants).
+- `fetchPlayerSeason(athleteId)` — season averages per athlete (cached), for
+  the stat sheets that unfold under box-score rows.
 - `src/wpr.js` — WPR's own Bucks coverage via WordPress REST (third external
   API, same rules: browser fetch, keyless, CORS-open). Coverage is an
   enhancement: the section renders nothing on failure.
@@ -113,9 +117,9 @@ small-caps kicker over a big Fraunces headline, sitting on the page background.
 Boxes (`.card`) are reserved for genuinely tabular content (standings,
 linescore, team stats, injury list); everything else runs open so the page
 doesn't read as a stack of rectangles. Signature elements: the two-tone
-games-above-.500 race chart and the film room's win-probability chart (green
-above the line, rust below, swing dots), both over hardwood-toned `#b8905a`
-accents. Icon/OG art is a generic basketball — no team marks (trademark note
+games-above-.500 race chart and the film room's score-flow chart (the real
+margin, stepped, green above the hardwood line and rust below), both over
+hardwood-toned `#b8905a` accents. Icon/OG art is a generic basketball — no team marks (trademark note
 in README).
 
 ## Environment

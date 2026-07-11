@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { TEAM_ABBR } from '../config.js'
-import { fetchGameDetail } from '../api.js'
-import { gameDate, periodLabel } from '../format.js'
+import { fetchGameDetail, fetchPlayerSeason } from '../api.js'
+import { gameDate, periodLabel, track } from '../format.js'
 import { buildRecapContext, recapFor } from '../recaps.js'
 import Section from '../components/Section.jsx'
-import GameFlow from '../components/GameFlow.jsx'
+import ScoreFlow from '../components/ScoreFlow.jsx'
 import ShotChart from '../components/ShotChart.jsx'
 
-// Replay any final: win probability, the turning point, the full box score,
-// game leaders, the big runs, the shot chart, and the team-stats comparison —
-// all from ESPN's summary endpoint, fetched per game on demand and cached in
-// api.js. The selected game lives in App (deep-linkable as ?game=), so any
-// schedule row or the hero can land here on a specific box score.
+// Replay any final: the score flow, the full box score (rows open into season
+// stat sheets), game leaders, the big runs, the shot chart with a per-player
+// filter, and the team-stats comparison — all from ESPN's summary endpoint,
+// fetched per game on demand and cached in api.js. The selected game lives in
+// App (deep-linkable as ?game=), so any schedule row or the hero can land here.
 export default function FilmRoomTab({ schedule, gameId, onPickGame }) {
   const finals = [...schedule.events.filter((e) => e.final)].reverse()
   // Validate the requested id against real finals; default to the latest.
@@ -37,6 +37,25 @@ export default function FilmRoomTab({ schedule, gameId, onPickGame }) {
   const game = finals.find((g) => g.id === selected)
   const recap = game ? recapFor(game, buildRecapContext(schedule.events)) : null
 
+  // Each player's game shooting line for the shot-chart filter, off the box score.
+  const shotPlayers = (detail?.boxScore?.rows ?? [])
+    .filter((r) => r.id)
+    .map((r) => {
+      const col = (name) => {
+        const i = detail.boxScore.names.indexOf(name)
+        return i >= 0 ? r.stats[i] : null
+      }
+      const pts = col('PTS')
+      const fg = col('FG')
+      const three = col('3PT')
+      const statLine = [
+        pts != null ? `${pts} points` : null,
+        fg ? `${fg} FG` : null,
+        three ? `${three} from three` : null,
+      ].filter(Boolean).join(' · ')
+      return { id: r.id, name: r.name, statLine }
+    })
+
   return (
     <>
       <Section kicker="The film room" title="How it unfolded">
@@ -58,37 +77,24 @@ export default function FilmRoomTab({ schedule, gameId, onPickGame }) {
           <>
             {recap && <p className="film-recap">{recap}</p>}
             <Linescore detail={detail} />
-            <GameFlow winProb={detail.winProb} turning={detail.turning} swings={detail.swings} won={game.won} />
-            {detail.turning && (
-              <div className="turning-point">
-                <div className="tp-kicker">
-                  The turning point · {periodLabel(detail.turning.period, detail.turning.clock)}
-                </div>
-                <div className="tp-text">
-                  {detail.turning.text}{' '}
-                  <span className="tp-swing">
-                    ({detail.turning.ourSwing >= 0 ? '+' : ''}{Math.round(detail.turning.ourSwing * 100)}% Bucks)
-                  </span>
-                </div>
-              </div>
-            )}
+            <ScoreFlow flow={detail.flow} totalSec={detail.totalSec} maxPeriod={detail.maxPeriod} />
           </>
         )}
       </Section>
 
       {detail && game && (
         <>
-          <Section kicker="The box score" title="Game leaders">
+          <BoxScoreTable boxScore={detail.boxScore} />
+          <Section kicker="At a glance" title="Game leaders">
             <GameLeaders leaders={detail.leaders} />
           </Section>
-          <BoxScoreTable boxScore={detail.boxScore} />
           <RunsCard scoring={detail.scoring} opponent={game.opponent.name} />
           <Section
             kicker="The shot chart"
             title="Where the shots fell"
             note="Every Bucks field-goal attempt — filled dots went in."
           >
-            <ShotChart shots={detail.shots} />
+            <ShotChart key={selected} shots={detail.shots} players={shotPlayers} />
           </Section>
           <TeamStats detail={detail} game={game} />
         </>
@@ -124,6 +130,120 @@ function Linescore({ detail }) {
   )
 }
 
+// The Bucks player table. ESPN sends the column names alongside the rows, so
+// we select the columns we want by name and stay stable if their order shifts.
+// Rows open into a season stat sheet (fetched per player, cached in api.js).
+const BOX_COLUMNS = ['MIN', 'PTS', 'REB', 'AST', 'FG', '3PT', '+/-']
+
+function BoxScoreTable({ boxScore }) {
+  const [openId, setOpenId] = useState(null)
+  if (!boxScore || boxScore.rows.length === 0) return null
+  const idx = BOX_COLUMNS.map((c) => [c, boxScore.names.indexOf(c)]).filter(([, i]) => i >= 0)
+  if (idx.length === 0) return null
+  const ptsIdx = boxScore.names.indexOf('PTS')
+  const rows = [...boxScore.rows].sort(
+    (a, b) => (parseInt(b.stats[ptsIdx], 10) || 0) - (parseInt(a.stats[ptsIdx], 10) || 0)
+  )
+
+  const toggle = (id) => {
+    const next = openId === id ? null : id
+    setOpenId(next)
+    if (next) track('Player Card')
+  }
+
+  return (
+    <Section kicker="The numbers" title="Bucks box score">
+      <div className="card box-scroll">
+        <table className="box-table">
+          <thead>
+            <tr>
+              <th className="player">Player</th>
+              {idx.map(([label]) => <th key={label}>{label}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <Fragment key={`${r.name}-${r.jersey}`}>
+                <tr
+                  className={`box-row ${r.id ? 'clickable' : ''} ${openId === r.id ? 'open' : ''}`}
+                  onClick={r.id ? () => toggle(r.id) : undefined}
+                  onKeyDown={r.id ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(r.id) } } : undefined}
+                  tabIndex={r.id ? 0 : undefined}
+                  aria-expanded={r.id ? openId === r.id : undefined}
+                >
+                  <td className="player">
+                    {r.name}
+                    {r.starter && <span className="starter" title="Starter"> *</span>}
+                  </td>
+                  {idx.map(([label, i]) => <td key={label}>{r.stats[i]}</td>)}
+                </tr>
+                {openId === r.id && (
+                  <tr className="box-expand">
+                    <td colSpan={idx.length + 1}>
+                      <PlayerSeason id={r.id} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+        <p className="section-note" style={{ marginTop: 10 }}>
+          Sorted by points · * started · DNPs omitted · tap a player for their season sheet.
+        </p>
+      </div>
+    </Section>
+  )
+}
+
+// The season stat sheet that unfolds under a clicked box-score row.
+const SEASON_TILES = [
+  ['avgPoints', 'PPG'], ['avgRebounds', 'RPG'], ['avgAssists', 'APG'],
+  ['avgSteals', 'SPG'], ['avgBlocks', 'BPG'], ['fieldGoalPct', 'FG%'],
+  ['threePointFieldGoalPct', '3P%'], ['freeThrowPct', 'FT%'],
+  ['avgMinutes', 'MIN'], ['gamesPlayed', 'Games'],
+]
+
+function PlayerSeason({ id }) {
+  const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let alive = true
+    fetchPlayerSeason(id)
+      .then((d) => { if (alive) setData(d) })
+      .catch((err) => { if (alive) setError(err.message) })
+    return () => { alive = false }
+  }, [id])
+
+  if (error) return <div className="ps-note">Couldn't load the season sheet. ({error})</div>
+  if (!data) return <div className="ps-note">Pulling the season numbers…</div>
+
+  const s = data.stats ?? {}
+  const tiles = SEASON_TILES.filter(([key]) => s[key] != null)
+  return (
+    <div className="player-season">
+      {data.headshot && <img src={data.headshot} alt="" loading="lazy" />}
+      <div className="ps-body">
+        <div className="ps-name">
+          {data.name}
+          <span className="ps-meta"> {data.position}{data.jersey && ` · #${data.jersey}`}</span>
+        </div>
+        {tiles.length > 0 ? (
+          <div className="ps-tiles">
+            {tiles.map(([key, label]) => (
+              <span className="ps-tile" key={key}><b>{s[key]}</b> {label}</span>
+            ))}
+          </div>
+        ) : (
+          <div className="ps-note">No season averages published yet.</div>
+        )}
+        <div className="ps-note">Regular-season averages · tap the row again to close.</div>
+      </div>
+    </div>
+  )
+}
+
 function GameLeaders({ leaders }) {
   if (leaders.length === 0) return null
   // Bucks first, opponent second.
@@ -148,48 +268,6 @@ function GameLeaders({ leaders }) {
         </div>
       ))}
     </div>
-  )
-}
-
-// The Bucks player table. ESPN sends the column names alongside the rows, so
-// we select the columns we want by name and stay stable if their order shifts.
-const BOX_COLUMNS = ['MIN', 'PTS', 'REB', 'AST', 'FG', '3PT', '+/-']
-
-function BoxScoreTable({ boxScore }) {
-  if (!boxScore || boxScore.rows.length === 0) return null
-  const idx = BOX_COLUMNS.map((c) => [c, boxScore.names.indexOf(c)]).filter(([, i]) => i >= 0)
-  if (idx.length === 0) return null
-  const ptsIdx = boxScore.names.indexOf('PTS')
-  const rows = [...boxScore.rows].sort(
-    (a, b) => (parseInt(b.stats[ptsIdx], 10) || 0) - (parseInt(a.stats[ptsIdx], 10) || 0)
-  )
-  return (
-    <Section kicker="The numbers" title="Bucks box score">
-      <div className="card box-scroll">
-        <table className="box-table">
-          <thead>
-            <tr>
-              <th className="player">Player</th>
-              {idx.map(([label]) => <th key={label}>{label}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={`${r.name}-${r.jersey}`}>
-                <td className="player">
-                  {r.name}
-                  {r.starter && <span className="starter" title="Starter"> *</span>}
-                </td>
-                {idx.map(([label, i]) => <td key={label}>{r.stats[i]}</td>)}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p className="section-note" style={{ marginTop: 10 }}>
-          Sorted by points · * started · DNPs omitted.
-        </p>
-      </div>
-    </Section>
   )
 }
 
@@ -240,25 +318,38 @@ const STAT_ROWS = [
   ['largestLead', 'Largest lead'],
 ]
 
+// Lower is better only for giveaways; everything else, bigger number wins the row.
+const LOWER_BETTER = new Set(['turnovers'])
+
+function leader(key, us, them) {
+  const a = parseFloat(String(us).match(/-?\d+(\.\d+)?/)?.[0])
+  const b = parseFloat(String(them).match(/-?\d+(\.\d+)?/)?.[0])
+  if (!Number.isFinite(a) || !Number.isFinite(b) || a === b) return null
+  return (LOWER_BETTER.has(key) ? a < b : a > b) ? 'us' : 'them'
+}
+
 function TeamStats({ detail, game }) {
   const byKey = Object.fromEntries(detail.teamStats.map((s) => [s.key, s]))
   const rows = STAT_ROWS.filter(([key]) => byKey[key])
   if (rows.length === 0) return null
   return (
-    <Section kicker="Head to head" title="The team stats">
+    <Section kicker="Head to head" title="The team stats" note="The better number in each row is bolded.">
       <div className="card">
         <table className="team-stats">
           <thead>
             <tr><th></th><th>Bucks</th><th>{game.opponent.name}</th></tr>
           </thead>
           <tbody>
-            {rows.map(([key, label]) => (
-              <tr key={key}>
-                <td className="label">{label}</td>
-                <td>{byKey[key].us}</td>
-                <td>{byKey[key].them}</td>
-              </tr>
-            ))}
+            {rows.map(([key, label]) => {
+              const lead = leader(key, byKey[key].us, byKey[key].them)
+              return (
+                <tr key={key}>
+                  <td className="label">{label}</td>
+                  <td className={lead === 'us' ? 'lead' : ''}>{byKey[key].us}</td>
+                  <td className={lead === 'them' ? 'lead' : ''}>{byKey[key].them}</td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
