@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { TEAM_LOGO } from '../config.js'
 import { fetchSchedule } from '../api.js'
-import { gameDate, gameTime } from '../format.js'
+import { gameDate, gameTime, periodLabel } from '../format.js'
 import { destination, trackMiniClick } from './mini-shared.js'
 import './mini.css'
 
@@ -56,9 +56,11 @@ function MiniScoreboard() {
         scheduled={!featured.final && !featured.live} />
 
       <div className="mini-meta">
-        {featured.final || featured.live
-          ? `${data.seasonLabel} season${featured.postseason ? ' · Playoffs' : ''}`
-          : `Tip-off ${gameTime(featured.date)} CT`}
+        {featured.live
+          ? `${periodLabel(featured.period, featured.clock)} · ${data.seasonLabel} season`
+          : featured.final
+            ? `${data.seasonLabel} season${featured.postseason ? ' · Playoffs' : ''}`
+            : `Tip-off ${gameTime(featured.date)} CT`}
       </div>
       <div className="mini-cta">Full Bucks tracker →</div>
     </a>

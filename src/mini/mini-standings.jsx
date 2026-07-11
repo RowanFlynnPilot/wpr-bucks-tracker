@@ -10,7 +10,7 @@ function MiniStandings() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetchStandings().then(setRows).catch((err) => setError(err.message))
+    fetchStandings().then((s) => setRows(s.east)).catch((err) => setError(err.message))
   }, [])
 
   if (error) return <div className="mini-status">Standings unavailable — refresh to retry.</div>

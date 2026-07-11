@@ -1,7 +1,8 @@
 # CLAUDE.md — wpr-bucks-tracker
 
 Live Milwaukee Bucks tracker for Wausau Pilot & Review. React/Vite → GitHub
-Pages → WordPress iframe embed. Sibling of `wpr-brewers-tracker`.
+Pages → WordPress iframe embed. Sibling of `wpr-brewers-tracker` and
+`wpr-packers-tracker` (the feature benchmark).
 
 ## The architectural decision (do not "fix" this)
 
@@ -10,7 +11,10 @@ deliberate. ESPN's site API and core API are public, stable, and CORS-open, so
 all data is fetched **directly in the browser** at page load. The standard WPR
 pipeline (scraper → Actions cron → static JSON) exists for scrape-fragile
 sources; ESPN is not one. Adding a caching layer here would be overengineering.
-The only GitHub Action builds and deploys.
+The GitHub Action builds and deploys; its twice-daily schedule exists **only**
+to re-render the newsletter digest **image** (`dist/digest.png`, baked at build
+time, never committed) — email can't run the live widget. An image for email is
+not a data cache; don't let it become one.
 
 ## Engineering rules (house style — applies to every change)
 
@@ -19,19 +23,31 @@ The only GitHub Action builds and deploys.
 - Surgical, single-responsibility changes. Fix root causes, not symptoms.
 - No overengineering. If ESPN's response shape changes, fix the normalizer —
   don't add defensive layers around it.
+- Charts are hand-rolled SVG (RaceChart, GameFlow, ShotChart). No chart library.
 
-## Data layer (`src/api.js`)
+## Data layer (`src/api.js`, plus `src/wpr.js`)
 
 - `fetchSchedule()` — regular season (type 2) + postseason (type 3), merged,
-  date-sorted. Postponed/canceled events are filtered at this boundary
-  (ESPN leaves postponed shells in the schedule — e.g. MIL/DAL Jan 2026).
-  An empty postseason array is data (missed the playoffs), not an error.
-- `fetchStandings()` — Eastern Conference entries, sorted by playoff seed.
-- `fetchLeaders()` — core API team leaders. Athlete names/headshots come from
-  resolving each leader's `$ref`, **never** from joining the current roster:
-  the roster only holds current players, and mid-season departures keep their
-  season leads (Giannis led 2025–26 FG% after being traded — the ref approach
-  renders him; a roster join drops him silently).
+  date-sorted. Postponed/canceled events are filtered at this boundary. Events
+  carry venue, the Bucks-market/national TV feed, NBA Cup notes, and live
+  period/clock. An empty postseason array is data (missed the playoffs), not an
+  error. Liveness is `status.type.state === 'in'` (halftime is still "in").
+- `fetchStandings()` — **both** conferences `{ east, west }`, seed-sorted, with
+  home/road/division splits and PPG for/against. East renders the table; the
+  league-wide rows feed hero opponent context, TeamProfile ranks, RoadAhead.
+- `fetchLeaders()` — core API team leaders. Athlete names/headshots/stat lines
+  come from resolving each leader's `$ref` (and its `statistics.$ref`), **never**
+  from joining the current roster: the roster only holds current players, and
+  mid-season departures keep their season leads (Giannis led 2025–26 FG% after
+  being traded — the ref approach renders him; a roster join drops him silently).
+- `fetchInjuries()` — core API injuries, athlete refs resolved. Empty = healthy.
+- `fetchGameDetail(eventId)` — the summary endpoint, per game on demand, cached
+  in a module Map: linescores, win probability (Bucks perspective), the turning
+  point (max WP swing), chartable shots (free throws carry INT_MIN sentinel
+  coords — filtered), scoring plays for runs, game leaders, team stats.
+- `src/wpr.js` — WPR's own Bucks coverage via WordPress REST (third external
+  API, same rules: browser fetch, keyless, CORS-open). Coverage is an
+  enhancement: the section renders nothing on failure.
 
 ## Season rollover
 
@@ -42,28 +58,45 @@ Bump to 2027 when the 2026–27 schedule publishes (~October).
 
 ## Surfaces
 
-- `index.html` — full tracker, tabs: Season / Schedule / Leaders. Posts
-  `wpr-bucks-height` to the parent on every layout change (ResizeObserver).
+- `index.html` — full tracker, tabs: Season / Schedule / Season stats (`leaders`)
+  / Film room (`film`). Tab **ids** are stable — they key `?tab=` deep links and
+  Plausible events; labels can change. Posts `wpr-bucks-height` to the parent on
+  every layout change (ResizeObserver).
 - `mini.html` — featured-game card (live > next > last final). `?to=` sets tap
-  destination.
+  destination (https-only, guarded in `mini-shared.js`).
 - `mini-standings.html` — East play-in field, Bucks always included.
+- `mini-digest.html` — the email snapshot (featured game + play-in field),
+  rendered to `digest.png` by `scripts/render-digest.mjs` in CI. `?image=1`
+  drops the CTA. It renders into a JS-less newsletter, so keep it self-contained.
 
-## Live-game polling (index + mini)
+## Refresh & live behavior (index + minis)
 
-While any event is `live`, the page refetches every 60s via a self-sustaining
-setTimeout chain that terminates at the final buzzer. Deliberate exception to
-fail-loud: a **failed poll** keeps the last good data on screen and logs to
-console — replacing a working scoreboard with an error over one transient blip
-mid-game is worse than briefly stale numbers. The **initial** load still fails
-loud with a visible error.
+Always-on refresh: every 120s at rest, 60s while any event is live, plus a
+refetch on `visibilitychange` — so a page opened before tip-off flips to Live
+without a reload. Deliberate exception to fail-loud: once data has rendered, a
+**failed refresh** keeps the last good data on screen and logs to console —
+replacing a working scoreboard with an error over one transient blip mid-game
+is worse than briefly stale numbers. The **initial** load still fails loud with
+a visible error (and self-retries on the next tick). `ErrorBoundary` catches
+render throws only; feed failures are handled at the fetch sites.
+
+## Sponsorship & product surfaces
+
+`SPONSOR` in config: `null` renders the "sponsorship available" house card in
+both slots (`top` in App, `season` mid-Season-tab) — unsold inventory should be
+visible, not hidden. Clicks track per-slot. `docs/HANDOFF.md` is the newsroom
+runbook; `docs/SPONSOR_PITCH.md` the sales skeleton. Keep both current when
+surfaces change.
 
 ## Design system
 
 WPR system, non-negotiable: Fraunces (display), Public Sans (body),
-JetBrains Mono (data), WPR teal `#3A867C` for publication branding only.
-Team accent: Bucks green `#00471B`; backgrounds blend WPR cream `#F6F2E9`
-with Bucks cream `#EEE1C6`. Signature element: the games-above-.500 race
-chart with a hardwood-toned `.500` baseline.
+JetBrains Mono (data), WPR teal `#3A867C` for publication branding only
+(masthead kicker, sponsor band chrome). Team accent: Bucks green `#00471B`;
+backgrounds blend WPR cream `#F6F2E9` with Bucks cream `#EEE1C6`. Signature
+elements: the games-above-.500 race chart and the film room's win-probability
+chart, both over hardwood-toned `#b8905a` accents. Icon/OG art is a generic
+basketball — no team marks (trademark note in README).
 
 ## Environment
 

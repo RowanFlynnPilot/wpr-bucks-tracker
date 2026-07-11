@@ -1,0 +1,16 @@
+{
+  "name": "Bucks, by the numbers — Wausau Pilot & Review",
+  "short_name": "Bucks",
+  "description": "Live Milwaukee Bucks stats from Wausau Pilot & Review — standings, the games-above-.500 race, the schedule, and team leaders.",
+  "start_url": "/wpr-bucks-tracker/",
+  "scope": "/wpr-bucks-tracker/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f2e9",
+  "theme_color": "#00471b",
+  "icons": [
+    { "src": "/wpr-bucks-tracker/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/wpr-bucks-tracker/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "/wpr-bucks-tracker/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

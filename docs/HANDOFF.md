@@ -1,0 +1,82 @@
+# Bucks tracker — handoff notes
+
+Everything the newsroom needs to run this without touching code. Live at
+<https://rowanflynnpilot.github.io/wpr-bucks-tracker/>. Technical background
+is in `README.md`; the non-negotiable architecture decision is in `CLAUDE.md`.
+
+## The four surfaces
+
+| Surface | URL | Where it goes |
+|---|---|---|
+| Full tracker | `/wpr-bucks-tracker/` | The Bucks page — iframe, auto-resizes |
+| Mini scoreboard | `/wpr-bucks-tracker/mini.html` | Sidebar / in-article card |
+| Mini standings | `/wpr-bucks-tracker/mini-standings.html` | Sidebar / in-article card |
+| Email digest image | `/wpr-bucks-tracker/digest.png` | Newsletter `<img>` — re-baked ~6:30 AM & ~3:30 PM Central |
+
+Embed snippets for all of them are in `README.md` (copy-paste into a WordPress
+**Custom HTML** block). Two behaviors worth knowing:
+
+- **Deep links:** `/?tab=schedule`, `/?tab=leaders` (Season stats), `/?tab=film`
+  open a specific tab — link them from game stories.
+- **Minis:** add `?to=https://wausaupilotandreview.com/milwaukee-bucks/` so a tap
+  lands on the WPR Bucks page instead of the bare tracker. https URLs only.
+
+## Newsletter digest
+
+Embed in email as a plain image + a real text link under it:
+
+```html
+<a href="https://wausaupilotandreview.com/milwaukee-bucks/">
+  <img src="https://rowanflynnpilot.github.io/wpr-bucks-tracker/digest.png"
+       width="420" alt="Bucks digest — score, standings" style="width:100%;max-width:420px" />
+</a>
+<p><a href="https://wausaupilotandreview.com/milwaukee-bucks/">Full Bucks tracker →</a></p>
+```
+
+The image re-bakes twice daily (before the morning and afternoon sends) via the
+deploy workflow. If it ever looks stale, run the **Deploy to GitHub Pages** action
+manually (Actions tab → Run workflow) — that re-renders it.
+
+## Selling the sponsorship
+
+`src/config.js` → `SPONSOR`. While `null`, the two sponsor slots show a
+"Sponsorship available" house card pointing at `SPONSOR_INQUIRY`
+(sales@wausaupilotandreview.com). To go paid:
+
+```js
+export const SPONSOR = {
+  name: 'Sponsor Name',
+  url: 'https://sponsor.example.com',       // click-through (tracked per slot)
+  logo: 'https://…/logo.png',               // optional — name renders if absent
+  tagline: 'One line about the sponsor',    // optional
+}
+```
+
+Push to `main`; the deploy is automatic. Clicks report to Plausible as
+`Sponsor Click` with the slot (`top` / `season`). **Before selling:** see the
+trademark note in `README.md` — consider `USE_TEAM_LOGO = false` on paid surfaces.
+
+## Season rollover (once a year, ~October)
+
+When the NBA publishes the new schedule, bump `SEASON` in `src/config.js`
+(ESPN uses the season's **end** year: 2026–27 season = `2027`), push to `main`.
+Everything else follows the config.
+
+## What reports to Plausible
+
+`Tab` (tab opens), `Share`, `Calendar` (add-to-calendar), `Mini Click`,
+`Coverage Click` (newsroom links), `Sponsor Click`, `Film Game` (film-room game
+picks), `Bookmark` (copy link), `Widget Error` (render failures — should be ~0).
+Dashboard: plausible.io, site `rowanflynnpilot.github.io`.
+
+## If something looks wrong
+
+- **Widget shows an error on load** — ESPN blip; it retries itself every 2
+  minutes. A reload usually clears it immediately.
+- **Score seems stale during a game** — it refreshes every 60s while live; check
+  the "Updated X min ago" stamp under the masthead.
+- **A postponed game shows up / a game is missing** — ESPN sometimes leaves
+  postponed shells in the schedule; the tracker filters `STATUS_POSTPONED` and
+  `STATUS_CANCELED`. If ESPN mislabels one, it clears when they fix their feed.
+- **Injury report or newsroom section missing** — both fail silent by design
+  (they're enhancements); they return when the feed does.

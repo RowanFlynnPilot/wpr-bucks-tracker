@@ -1,24 +1,33 @@
-import { TEAM_ABBR } from '../config.js'
+import { TEAM_ABBR, VENUE } from '../config.js'
+import GameHero from '../components/GameHero.jsx'
+import Storylines from '../components/Storylines.jsx'
 import RaceChart from '../components/RaceChart.jsx'
 import StandingsTable from '../components/StandingsTable.jsx'
-import GameRow from '../components/GameRow.jsx'
+import VsCentral from '../components/VsCentral.jsx'
+import PlayInOdds from '../components/PlayInOdds.jsx'
+import RoadAhead from '../components/RoadAhead.jsx'
+import SponsorBand from '../components/SponsorBand.jsx'
 
 export default function SeasonTab({ schedule, standings }) {
   // Presence guaranteed by fetchStandings — it throws before render otherwise.
-  const us = standings.find((row) => row.abbr === TEAM_ABBR)
+  const us = standings.east.find((row) => row.abbr === TEAM_ABBR)
 
   const played = schedule.events.filter((e) => e.final)
-  const lastGame = played[played.length - 1] ?? null
-  const nextGame = schedule.events.find((e) => !e.final) ?? null
 
   return (
     <>
+      <GameHero schedule={schedule} standings={standings} />
+
+      <Storylines schedule={schedule} standings={standings} />
+
       <div className="pulse">
         <Stat value={`${us.wins}–${us.losses}`} label="Record" />
         <Stat value={`#${us.seed}`} label="East seed" />
         <Stat value={us.streak} label="Streak" />
         <Stat value={us.lastTen} label="Last 10" />
         <Stat value={us.pointDiff} label="Point diff / game" />
+        <Stat value={us.homeRecord} label={`At ${VENUE.split(' ')[0]}`} />
+        <Stat value={us.roadRecord} label="On the road" />
       </div>
 
       <div className="card" style={{ marginTop: 18 }}>
@@ -27,20 +36,17 @@ export default function SeasonTab({ schedule, standings }) {
         <RaceChart games={played.filter((g) => !g.postseason)} />
       </div>
 
-      <div className="card">
-        <h2 className="section">{nextGame ? 'Last game & next up' : 'How it ended'}</h2>
-        {lastGame && <GameRow game={lastGame} />}
-        {nextGame
-          ? <GameRow game={nextGame} />
-          : <p className="section-note" style={{ marginTop: 10 }}>
-              Season complete. Next season's schedule lands here when the NBA publishes it.
-            </p>}
-      </div>
+      <SponsorBand slot="season" />
+
+      <PlayInOdds standings={standings} />
 
       <div className="card">
         <h2 className="section">Eastern Conference</h2>
-        <StandingsTable rows={standings} />
+        <StandingsTable rows={standings.east} />
+        <VsCentral schedule={schedule} />
       </div>
+
+      <RoadAhead schedule={schedule} standings={standings} />
     </>
   )
 }

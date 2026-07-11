@@ -12,6 +12,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         mini: resolve(__dirname, 'mini.html'),
         'mini-standings': resolve(__dirname, 'mini-standings.html'),
+        'mini-digest': resolve(__dirname, 'mini-digest.html'),
       },
     },
   },

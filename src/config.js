@@ -8,10 +8,15 @@ export const SEASON = 2026
 export const TEAM_ID = '15' // Milwaukee Bucks (ESPN)
 export const TEAM_ABBR = 'MIL'
 export const CONFERENCE = 'Eastern Conference'
+export const VENUE = 'Fiserv Forum'
 
 // NBA playoff format: seeds 1-6 are locked in, 7-10 go to the play-in.
 export const PLAYOFF_LINE = 6
 export const PLAY_IN_LINE = 10
+export const GAMES_IN_SEASON = 82
+
+// Central Division rivals — the season-series strip under the standings.
+export const CENTRAL_RIVALS = ['CHI', 'CLE', 'DET', 'IND']
 
 // Team identity (Bucks "Good Land Green" + cream)
 export const TEAM_COLOR = '#00471B'
@@ -22,9 +27,19 @@ export const TEAM_CREAM = '#EEE1C6'
 export const USE_TEAM_LOGO = true
 export const TEAM_LOGO = 'https://a.espncdn.com/i/teamlogos/nba/500/mil.png'
 
-// Sponsor slot in the footer. Empty string = slot hidden.
-export const SPONSOR_TEXT = ''
-export const SPONSOR_URL = ''
+// Sponsor lockup. null = unsold, and the slots show a tasteful "sponsorship
+// available" house card instead of an empty hole — inventory the sales side
+// can point at. Fill in to go paid:
+// { name: 'Culver's of Wausau', url: 'https://…', logo: 'https://…', tagline: '…' }
+export const SPONSOR = null
+export const SPONSOR_INQUIRY = 'sales@wausaupilotandreview.com'
+
+// WPR's own Bucks coverage (WordPress REST). categoryId is the site's
+// "Milwaukee Bucks" category. null base disables the section.
+export const WPR_NEWS = {
+  base: 'https://wausaupilotandreview.com/wp-json/wp/v2',
+  categoryId: 567085021,
+}
 
 // Where mini-card taps land by default (overridable per-embed via ?to=)
 export const TRACKER_URL = 'https://rowanflynnpilot.github.io/wpr-bucks-tracker/'

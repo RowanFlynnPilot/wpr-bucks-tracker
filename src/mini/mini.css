@@ -73,3 +73,28 @@ table.mini-standings tr.us td.team { color: var(--team); }
 table.mini-standings tr.playoff-line td { border-bottom: 2px solid var(--team); }
 
 .mini-status { padding: 30px 0; text-align: center; color: var(--ink-soft); font-size: 0.85rem; }
+
+/* ---------- Digest (email snapshot) ---------- */
+
+.mini-card.digest { max-width: 420px; }
+
+.digest-section {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cream-deep);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: var(--team);
+  margin-bottom: 6px;
+}
+
+.digest-stamp {
+  margin-top: 10px;
+  font-family: var(--font-data);
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+}
+
+a.mini-cta { display: block; text-decoration: none; color: var(--team); }

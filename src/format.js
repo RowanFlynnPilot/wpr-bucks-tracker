@@ -18,6 +18,22 @@ export function gameTime(date) {
   })
 }
 
+// Bare time-until phrase ("3 days" / "5 hours" / "42 min"); callers add the verb.
+export function countdown(date) {
+  const mins = Math.round((date - Date.now()) / 60_000)
+  if (mins < 1) return 'moments'
+  if (mins < 90) return `${mins} min`
+  const hrs = Math.round(mins / 60)
+  if (hrs < 36) return `${hrs} hours`
+  return `${Math.round(hrs / 24)} days`
+}
+
+// NBA period label: quarters, then OT / 2OT / …
+export function periodLabel(period, clock) {
+  const p = period <= 4 ? `Q${period}` : period === 5 ? 'OT' : `${period - 4}OT`
+  return clock ? `${p} · ${clock}` : p
+}
+
 export function track(eventName, props) {
   // Guard for local dev / blocked analytics — Plausible loads from index.html.
   if (window.plausible) window.plausible(eventName, props ? { props } : undefined)
