@@ -1,0 +1,75 @@
+:root {
+  --team: #00471b;
+  --cream: #f6f2e9;
+  --cream-deep: #eee1c6;
+  --ink: #1c1a15;
+  --ink-soft: #5c574b;
+  --line: #d9d0bc;
+  --win: #0b5d2b;
+  --loss: #a3442a;
+  --card: #fffdf8;
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Public Sans', system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: transparent; font-family: var(--font-body); color: var(--ink); }
+
+a.mini-card {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--team);
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--ink);
+}
+a.mini-card:hover { background: var(--cream); }
+
+.mini-kicker {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: var(--team);
+  margin-bottom: 8px;
+}
+
+.mini-head {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.02rem;
+  margin-bottom: 10px;
+}
+
+.mini-matchup { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+.mini-matchup img { width: 30px; height: 30px; }
+.mini-matchup .team-name { flex: 1; font-weight: 600; font-size: 0.92rem; }
+.mini-matchup .pts { font-family: var(--font-data); font-weight: 700; font-size: 1.15rem; }
+.mini-matchup.won .pts { color: var(--win); }
+.mini-matchup .pts.dim { color: var(--ink-soft); font-weight: 400; }
+
+.mini-meta { font-family: var(--font-data); font-size: 0.72rem; color: var(--ink-soft); margin-top: 8px; }
+
+.mini-cta {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cream-deep);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--team);
+}
+
+table.mini-standings { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+table.mini-standings td { padding: 4px 4px; border-bottom: 1px solid var(--cream-deep); }
+table.mini-standings td.num { font-family: var(--font-data); text-align: right; font-size: 0.78rem; }
+table.mini-standings td.seed { color: var(--ink-soft); font-family: var(--font-data); font-size: 0.72rem; width: 22px; }
+table.mini-standings td.team { font-weight: 600; white-space: nowrap; }
+table.mini-standings td.team img { width: 17px; height: 17px; vertical-align: -4px; margin-right: 6px; }
+table.mini-standings tr.us td { background: var(--cream-deep); }
+table.mini-standings tr.us td.team { color: var(--team); }
+table.mini-standings tr.playoff-line td { border-bottom: 2px solid var(--team); }
+
+.mini-status { padding: 30px 0; text-align: center; color: var(--ink-soft); font-size: 0.85rem; }

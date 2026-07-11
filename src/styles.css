@@ -1,0 +1,330 @@
+/* WPR design system: Fraunces display, Public Sans body, JetBrains Mono data.
+   Team accent: Bucks "Good Land Green". Backgrounds sit between WPR cream
+   (#F6F2E9) and Bucks cream (#EEE1C6). */
+
+:root {
+  --team: #00471b;
+  --team-soft: #0b5d2b;
+  --wpr-teal: #3a867c;
+  --cream: #f6f2e9;
+  --cream-deep: #eee1c6;
+  --ink: #1c1a15;
+  --ink-soft: #5c574b;
+  --line: #d9d0bc;
+  --win: #0b5d2b;
+  --loss: #a3442a;
+  --card: #fffdf8;
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Public Sans', system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+#root { max-width: 860px; margin: 0 auto; padding: 0 16px 24px; }
+
+/* ---------- Masthead ---------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0 16px;
+  border-bottom: 3px solid var(--team);
+}
+
+.masthead img.team-logo { width: 64px; height: 64px; }
+
+.masthead .logo-swatch {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--team);
+  border: 4px solid var(--cream-deep);
+}
+
+.masthead h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.9rem;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.masthead .kicker {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--wpr-teal);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.masthead .season-label {
+  font-family: var(--font-data);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- Tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tabs button {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 10px 18px;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabs button:hover { color: var(--ink); }
+.tabs button:focus-visible { outline: 2px solid var(--wpr-teal); outline-offset: -2px; }
+.tabs button.active { color: var(--team); border-bottom-color: var(--team); }
+
+/* ---------- Cards & sections ---------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+
+h2.section {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin: 0 0 12px;
+}
+
+.section-note { font-size: 0.85rem; color: var(--ink-soft); margin: -6px 0 12px; }
+
+/* ---------- Season pulse ---------- */
+
+.pulse {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.pulse .stat {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.pulse .stat .value {
+  font-family: var(--font-data);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--team);
+}
+
+.pulse .stat .label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+/* ---------- Race chart ---------- */
+
+.race-chart svg { width: 100%; height: auto; display: block; }
+
+/* ---------- Standings ---------- */
+
+.standings { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+
+.standings th {
+  text-align: right;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.standings th.team-col, .standings td.team-col { text-align: left; }
+
+.standings td {
+  padding: 7px 8px;
+  text-align: right;
+  font-family: var(--font-data);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--cream-deep);
+}
+
+.standings td.team-col {
+  font-family: var(--font-body);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.standings td.team-col img { width: 20px; height: 20px; vertical-align: -5px; margin-right: 8px; }
+
+.standings tr.us { background: var(--cream-deep); }
+.standings tr.us td.team-col { color: var(--team); }
+
+.standings tr.playoff-line td { border-bottom: 2px solid var(--team); }
+.standings tr.play-in-line td { border-bottom: 2px dashed var(--ink-soft); }
+
+.standings .seed {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  display: inline-block;
+  width: 20px;
+}
+
+.legend { display: flex; gap: 18px; margin-top: 10px; font-size: 0.75rem; color: var(--ink-soft); }
+.legend .swatch { display: inline-block; width: 18px; border-bottom-width: 2px; border-bottom-style: solid; vertical-align: middle; margin-right: 6px; }
+.legend .solid { border-bottom-color: var(--team); }
+.legend .dashed { border-bottom-color: var(--ink-soft); border-bottom-style: dashed; }
+
+/* ---------- Schedule ---------- */
+
+.game-row {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--cream-deep);
+}
+
+.game-row:last-child { border-bottom: none; }
+.game-row .when { font-family: var(--font-data); font-size: 0.78rem; color: var(--ink-soft); }
+.game-row .matchup { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.92rem; }
+.game-row .matchup img { width: 22px; height: 22px; }
+.game-row .matchup .vsat { color: var(--ink-soft); font-weight: 400; font-size: 0.8rem; }
+.game-row .score { font-family: var(--font-data); font-weight: 700; font-size: 0.95rem; }
+.game-row .score .result { display: inline-block; width: 1.4em; }
+.game-row .score.won .result { color: var(--win); }
+.game-row .score.lost .result { color: var(--loss); }
+.game-row .time { font-family: var(--font-data); font-size: 0.85rem; color: var(--ink-soft); }
+.postseason-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--card);
+  background: var(--team);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* ---------- Leaders ---------- */
+
+.leader-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.leader-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.leader-card h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 0 0 10px;
+  color: var(--team);
+}
+
+.leader-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.leader-row img {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--cream-deep);
+}
+.leader-row .who { flex: 1; min-width: 0; }
+.leader-row .who .name { font-weight: 600; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.leader-row .who .meta { font-size: 0.72rem; color: var(--ink-soft); }
+.leader-row .stat-value { font-family: var(--font-data); font-weight: 700; color: var(--team); }
+.leader-row.top .stat-value { font-size: 1.15rem; }
+
+/* ---------- Footer ---------- */
+
+.footer {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.footer a { color: var(--wpr-teal); }
+
+.sponsor {
+  background: var(--cream-deep);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+.copy-link {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--team);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.copy-link:hover { background: var(--cream-deep); }
+
+/* ---------- Loading / error ---------- */
+
+.status-block {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.status-block.error { color: var(--loss); }
+
+@media (max-width: 560px) {
+  .masthead h1 { font-size: 1.45rem; }
+  .masthead img.team-logo, .masthead .logo-swatch { width: 48px; height: 48px; }
+  .standings .hide-sm { display: none; }
+  .game-row { grid-template-columns: 78px 1fr auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
