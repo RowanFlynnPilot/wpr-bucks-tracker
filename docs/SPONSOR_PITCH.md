@@ -19,12 +19,18 @@ front of them every time — and your name rides along.
 
 | Placement | Where | What it looks like |
 |---|---|---|
-| **Top band** | Above the fold, every tab, every visit | "Presented by NAME" lockup — logo, tagline, click-through |
-| **Season band** | Mid-page on the default tab | Same lockup, second impression |
+| **Title sponsorship — banner** | In the masthead, every tab, every visit | "Presented by NAME" lockup — logo, tagline, click-through |
+| **Title sponsorship — season band** | Mid-page on the default tab | Same lockup, second impression |
+| **Where-to-Watch listings** | Top of the Schedule tab, sold *per venue* | A bar/restaurant card: photos, amenity chips, game-day specials, tracked link |
 | **Newsletter digest** | WPR email sends (image refreshed twice daily) | Adjacent placement negotiable with the newsroom |
 
-Both web slots are one sponsor, sold together — category exclusivity comes free
-with that. Clicks are tracked per-slot in Plausible; sponsors get the numbers.
+The two title slots are one sponsor, sold together — category exclusivity comes
+free with that. Where-to-Watch is separate, local, per-listing inventory made
+for Wausau bars and restaurants. Clicks are tracked per-slot in Plausible;
+sponsors get the numbers.
+
+**Show, don't tell:** the live demo fills every open slot with placeholders —
+<https://rowanflynnpilot.github.io/wpr-bucks-tracker/?demo&tab=schedule>
 
 ## Why it works
 

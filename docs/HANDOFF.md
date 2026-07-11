@@ -56,6 +56,40 @@ Push to `main`; the deploy is automatic. Clicks report to Plausible as
 `Sponsor Click` with the slot (`top` / `season`). **Before selling:** see the
 trademark note in `README.md` — consider `USE_TEAM_LOGO = false` on paid surfaces.
 
+## Selling Where-to-Watch listings (bars & restaurants)
+
+"Catch the games this week" at the top of the Schedule tab is a game-night
+venue guide, **sold per listing** — separate inventory from the title
+sponsorship. `src/config.js` → `WATCH_VENUES`; each listing:
+
+```js
+{
+  name: 'The Bar Name',
+  tagline: 'One italic line about the room',
+  images: ['https://…/hero.jpg', 'https://…/thumb1.jpg'],  // first = big photo
+  url: 'https://thebar.example.com',       // "Menu & info →", tracked
+  address: '123 Third St, Wausau',
+  phone: '715-555-0100',
+  features: ['12 HDTVs', 'Full bar & patio'],   // amenity chips
+  specials: ['$3 Wisconsin taps'],              // game-day specials bullets
+}
+```
+
+While the array is empty the section doesn't render at all — readers never see
+an empty shelf. Venue clicks report as `Sponsor Click` with slot
+`where-to-watch`.
+
+## Showing a prospect (sales demo mode)
+
+Append **`?demo`** to any tracker URL and every *unsold* slot fills with a
+"Your Brand Here" / "Your Bar Here" placeholder on the otherwise-live page —
+real scores, their name on the marquee. Sold slots are never overridden, and
+ordinary readers never see placeholders. The link to send:
+
+> **https://rowanflynnpilot.github.io/wpr-bucks-tracker/?demo&tab=schedule**
+
+(Same pattern as the Brewers and Packers trackers.)
+
 ## Season rollover (once a year, ~October)
 
 When the NBA publishes the new schedule, bump `SEASON` in `src/config.js`

@@ -135,6 +135,10 @@ Everything tweakable lives in `src/config.js`:
   2026–27 schedule publishes (October).
 - **SPONSOR / SPONSOR_INQUIRY** — `null` shows the "sponsorship available"
   house card in both slots; fill the object to go paid (clicks tracked per slot).
+- **WATCH_VENUES** — per-listing bar/restaurant cards in "Catch the games this
+  week" (Schedule tab). Empty = section hidden. Append `?demo` to any URL for
+  sales demo mode: open slots fill with "Your Brand Here" placeholders (sold
+  slots never overridden; ordinary readers never see it).
 - **WPR_NEWS** — WordPress REST base + the `milwaukee-bucks` category id that
   powers "From the newsroom".
 - **TEAM_ID / TEAM_ABBR / VENUE / CENTRAL_RIVALS** — repoint at another NBA

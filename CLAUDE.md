@@ -84,9 +84,14 @@ render throws only; feed failures are handled at the fetch sites.
 
 `SPONSOR` in config: `null` renders the "sponsorship available" house card in
 both slots (`top` in App, `season` mid-Season-tab) — unsold inventory should be
-visible, not hidden. Clicks track per-slot. `docs/HANDOFF.md` is the newsroom
-runbook; `docs/SPONSOR_PITCH.md` the sales skeleton. Keep both current when
-surfaces change.
+visible, not hidden. `WATCH_VENUES` (per-listing bar/restaurant cards, "Catch
+the games this week" atop the Schedule tab) renders nothing while empty —
+readers never see an empty shelf. Clicks track per-slot. **Sales demo mode:**
+`?demo` fills open slots with placeholders at module load in config.js (sold
+slots never overridden — the exports are `let` for exactly this reason; same
+pattern as the Brewers/Packers). `docs/HANDOFF.md` is the newsroom runbook;
+`docs/SPONSOR_PITCH.md` the sales skeleton. Keep both current when surfaces
+change.
 
 ## Design system
 

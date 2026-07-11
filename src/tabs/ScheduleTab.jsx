@@ -3,6 +3,7 @@ import { VENUE } from '../config.js'
 import { countdown, gameDate, gameTime } from '../format.js'
 import Section from '../components/Section.jsx'
 import GameRow from '../components/GameRow.jsx'
+import WhereToWatch from '../components/WhereToWatch.jsx'
 import InjuryReport from '../components/InjuryReport.jsx'
 import Coverage from '../components/Coverage.jsx'
 
@@ -18,6 +19,8 @@ export default function ScheduleTab({ schedule }) {
 
   return (
     <>
+      <WhereToWatch schedule={schedule} />
+
       <Section kicker="The season" title="The schedule">
         {upcoming.length > 0 && (
           <div className="card">
