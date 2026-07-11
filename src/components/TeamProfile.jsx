@@ -1,4 +1,5 @@
 import { TEAM_ABBR } from '../config.js'
+import Section from './Section.jsx'
 
 // League context: where the team ranks among all 30, from the standings feed
 // (the one source that has every team's scoring numbers in a single response).
@@ -29,11 +30,11 @@ export default function TeamProfile({ standings }) {
   const worst = metrics.reduce((a, b) => (b.rank > a.rank ? b : a))
 
   return (
-    <div className="card">
-      <h2 className="section">The team, in profile</h2>
-      <p className="section-note">
-        Each dot is the Bucks' rank among the NBA's 30 teams — the left edge leads the league.
-      </p>
+    <Section
+      kicker="League context"
+      title="The team, in profile"
+      note="Each dot is the Bucks' rank among the NBA's 30 teams — the left edge leads the league."
+    >
       {metrics.map((m) => (
         <div className="profile-row" key={m.label}>
           <div className="profile-label">{m.label}</div>
@@ -48,6 +49,6 @@ export default function TeamProfile({ standings }) {
         Sharpest edge: {best.label.toLowerCase()} ({ordinal(best.rank)} in the NBA) · biggest soft spot:{' '}
         {worst.label.toLowerCase()} ({ordinal(worst.rank)}).
       </p>
-    </div>
+    </Section>
   )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchLeaders } from '../api.js'
+import Section from '../components/Section.jsx'
 import TeamProfile from '../components/TeamProfile.jsx'
 
 // Loaded on first visit to the tab — the leaders call fans out into athlete +
@@ -44,32 +45,34 @@ export default function LeadersTab({ standings }) {
         )}
       </div>
 
-      <p className="section-note">
-        Regular-season team leaders. Players dealt away mid-season keep the numbers they
-        put up here.
-      </p>
-      <div className="leader-grid">
-        {categories.map((cat) => (
-          <div className="leader-card" key={cat.name}>
-            <h3>{cat.label}</h3>
-            {cat.leaders.map((l, i) => (
-              <div className={`leader-row ${i === 0 ? 'top' : ''}`} key={l.athlete.id}>
-                {l.athlete.headshot
-                  ? <img src={l.athlete.headshot} alt="" loading="lazy" />
-                  : <div style={{ width: 36, height: 36 }} />}
-                <div className="who">
-                  <div className="name">{l.athlete.name}</div>
-                  <div className="meta">
-                    {l.athlete.position}{l.athlete.jersey && ` · #${l.athlete.jersey}`}
-                    {subline(cat.name, l.athlete.stats) && ` · ${subline(cat.name, l.athlete.stats)}`}
+      <Section
+        kicker="The leaders"
+        title="Who's carrying it"
+        note="Regular-season team leaders. Players dealt away mid-season keep the numbers they put up here."
+      >
+        <div className="leader-grid">
+          {categories.map((cat) => (
+            <div className="leader-card" key={cat.name}>
+              <h3>{cat.label}</h3>
+              {cat.leaders.map((l, i) => (
+                <div className={`leader-row ${i === 0 ? 'top' : ''}`} key={l.athlete.id}>
+                  {l.athlete.headshot
+                    ? <img src={l.athlete.headshot} alt="" loading="lazy" />
+                    : <div style={{ width: 36, height: 36 }} />}
+                  <div className="who">
+                    <div className="name">{l.athlete.name}</div>
+                    <div className="meta">
+                      {l.athlete.position}{l.athlete.jersey && ` · #${l.athlete.jersey}`}
+                      {subline(cat.name, l.athlete.stats) && ` · ${subline(cat.name, l.athlete.stats)}`}
+                    </div>
                   </div>
+                  <div className="stat-value">{l.value}</div>
                 </div>
-                <div className="stat-value">{l.value}</div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </Section>
 
       {standings && <TeamProfile standings={standings} />}
     </>

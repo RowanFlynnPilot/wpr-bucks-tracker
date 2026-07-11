@@ -252,12 +252,16 @@ async function loadGameDetail(eventId) {
   const wpRaw = d.winprobability ?? []
   const winProb = wpRaw.map((w) => (usHome ? w.homeWinPercentage : 1 - w.homeWinPercentage))
 
-  // The turning point: the single largest win-probability swing.
+  // The turning point (single largest win-probability swing) and the swing
+  // plays (every ≥5% shift) — the dots on the game-flow chart. NBA scoring is
+  // too dense to mark every basket; the swings are the ones that mattered.
   const plays = d.plays ?? []
   const playById = new Map(plays.map((p) => [p.id, p]))
   let turning = null
+  const swings = []
   for (let i = 1; i < wpRaw.length; i++) {
     const delta = Math.abs(wpRaw[i].homeWinPercentage - wpRaw[i - 1].homeWinPercentage)
+    if (delta >= 0.05) swings.push({ index: i, delta })
     if (turning && delta <= turning.delta) continue
     const play = playById.get(wpRaw[i].playId)
     if (!play) continue
@@ -270,6 +274,8 @@ async function loadGameDetail(eventId) {
       ourSwing: (usHome ? 1 : -1) * (wpRaw[i].homeWinPercentage - wpRaw[i - 1].homeWinPercentage),
     }
   }
+  swings.sort((a, b) => b.delta - a.delta)
+  swings.length = Math.min(swings.length, 14) // keep the chart readable
 
   // Bucks field-goal attempts with usable coordinates. ESPN marks free throws
   // and dead plays with INT_MIN-ish sentinel coords — those aren't chartable.
@@ -298,7 +304,9 @@ async function loadGameDetail(eventId) {
       clock: p.clock?.displayValue ?? '',
     }))
 
-  // Top performer per stat, per team.
+  // Top performer per stat, per team. Headshot arrives as a string in some
+  // payloads and { href } in others — normalize to a URL or null.
+  const headshotUrl = (h) => (typeof h === 'string' ? h : h?.href ?? null)
   const leaders = (d.leaders ?? []).map((t) => ({
     abbr: t.team?.abbreviation,
     cats: (t.leaders ?? []).map((c) => {
@@ -307,7 +315,7 @@ async function loadGameDetail(eventId) {
         name: c.name,
         label: c.displayName,
         athlete: top?.athlete?.displayName ?? null,
-        headshot: top?.athlete?.headshot ?? null,
+        headshot: headshotUrl(top?.athlete?.headshot),
         value: top?.displayValue ?? '',
       }
     }),
@@ -323,5 +331,5 @@ async function loadGameDetail(eventId) {
     .filter((k) => k in theirs)
     .map((k) => ({ key: k, label: ours[k].label ?? ours[k].displayName ?? k, us: ours[k].displayValue, them: theirs[k].displayValue }))
 
-  return { usHome, home: side(home), away: side(away), winProb, turning, shots, scoring, leaders, teamStats }
+  return { usHome, home: side(home), away: side(away), winProb, turning, swings, shots, scoring, leaders, teamStats }
 }

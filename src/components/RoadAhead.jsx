@@ -1,5 +1,6 @@
 import { VENUE } from '../config.js'
 import { gameDate } from '../format.js'
+import Section from './Section.jsx'
 
 // Strength of what's left: remaining opponents' combined winning percentage,
 // plus the next eight opponents at a glance. In-season only — with no games
@@ -19,12 +20,11 @@ export default function RoadAhead({ schedule, standings }) {
   const next = withRows.slice(0, 8)
 
   return (
-    <div className="card">
-      <h2 className="section">The road ahead</h2>
-      <p className="section-note">
-        Remaining opponents play {combined.toFixed(3).replace(/^0/, '')} ball ·{' '}
-        {upcoming.length} games left, {homeLeft} of them at {VENUE}.
-      </p>
+    <Section
+      kicker="Strength of schedule"
+      title="The road ahead"
+      note={`Remaining opponents play ${combined.toFixed(3).replace(/^0/, '')} ball · ${upcoming.length} games left, ${homeLeft} of them at ${VENUE}.`}
+    >
       <div className="road-chips">
         {next.map(({ g, row }) => (
           <span className="road-chip" key={g.id} title={gameDate(g.date)}>
@@ -37,6 +37,6 @@ export default function RoadAhead({ schedule, standings }) {
       <p className="section-note" style={{ marginTop: 10 }}>
         The next eight opponents, with their current records.
       </p>
-    </div>
+    </Section>
   )
 }

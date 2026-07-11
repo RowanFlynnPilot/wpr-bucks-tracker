@@ -1,4 +1,5 @@
 import { GAMES_IN_SEASON, PLAYOFF_LINE, PLAY_IN_LINE, TEAM_ABBR } from '../config.js'
+import Section from './Section.jsx'
 
 const SIMS = 4000
 
@@ -52,20 +53,18 @@ export default function PlayInOdds({ standings }) {
       ? 'a top-six playoff seed'
       : us.seed <= PLAY_IN_LINE ? 'a play-in berth' : 'outside the play-in field'
     return (
-      <div className="card">
-        <h2 className="section">The playoff picture</h2>
+      <Section kicker="The playoff picture" title="Where the math landed">
         <p className="section-note">
           Final: #{us.seed} in the East — {finish}. The odds tiles return on opening night.
         </p>
-      </div>
+      </Section>
     )
   }
 
   const { top6, playIn, medianWins } = simulate(east)
 
   return (
-    <div className="card">
-      <h2 className="section">The playoff picture</h2>
+    <Section kicker="The playoff picture" title="The play-in math">
       <div className="pulse odds">
         <div className="stat">
           <div className="value">{pct(top6)}</div>
@@ -84,6 +83,6 @@ export default function PlayInOdds({ standings }) {
         House model: {SIMS.toLocaleString()} simulated seasons from current records, regressed toward
         .500 — editorial flavor, not a sportsbook.
       </p>
-    </div>
+    </Section>
   )
 }

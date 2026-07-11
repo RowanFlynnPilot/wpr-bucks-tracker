@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { HEIGHT_MESSAGE_TYPE, TEAM_LOGO, USE_TEAM_LOGO } from './config.js'
 import SponsorBand from './components/SponsorBand.jsx'
+import BookmarkButton from './components/BookmarkButton.jsx'
 import { fetchSchedule, fetchStandings } from './api.js'
 import { track } from './format.js'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
@@ -107,22 +108,39 @@ export default function App() {
     track('Bookmark')
   }
 
+  const today = new Date().toLocaleDateString('en-US', {
+    timeZone: 'America/Chicago',
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  })
+
   return (
     <div>
-      <header className="masthead">
-        {USE_TEAM_LOGO
-          ? <img className="team-logo" src={TEAM_LOGO} alt="Milwaukee Bucks logo" />
-          : <div className="logo-swatch" aria-hidden="true" />}
-        <div>
-          <div className="kicker">Wausau Pilot &amp; Review</div>
-          <h1>The Bucks, by the numbers</h1>
-          <div className="season-label">
-            {data ? `${data.schedule.seasonLabel} season · live from ESPN` : 'Loading…'}
+      <div className="dateline">
+        <span>{today}</span>
+        <span className="place">Wausau, Wisconsin</span>
+      </div>
+
+      <header className="banner">
+        <div className="banner-lockup">
+          {USE_TEAM_LOGO
+            ? <img className="banner-logo" src={TEAM_LOGO} alt="Milwaukee Bucks logo" />
+            : <div className="banner-swatch" aria-hidden="true" />}
+          <div>
+            <div className="banner-kicker">Wisconsin Sports · Wausau Pilot &amp; Review</div>
+            <h1 className="banner-title">The Bucks, by the numbers</h1>
+            <div className="banner-dek">The shape of Milwaukee's season, updated live.</div>
+            <div className="banner-season">
+              {data ? `${data.schedule.seasonLabel} season · live from ESPN` : 'Loading…'}
+            </div>
           </div>
         </div>
+        <SponsorBand slot="top" variant="dark" />
       </header>
 
-      <UpdatedStamp at={updatedAt} />
+      <div className="stamp-row">
+        <BookmarkButton />
+        <UpdatedStamp at={updatedAt} />
+      </div>
 
       <nav className="tabs" role="tablist" aria-label="Sections">
         {TABS.map((t) => (
@@ -137,8 +155,6 @@ export default function App() {
           </button>
         ))}
       </nav>
-
-      <SponsorBand slot="top" />
 
       {error && !data && (
         <div className="status-block error">

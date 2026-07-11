@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchCoverage } from '../wpr.js'
 import { track } from '../format.js'
+import Section from './Section.jsx'
 
 // WPR's latest Bucks stories — the bridge from the widget back to the newsroom.
 // Coverage is an enhancement, not core data: on failure the section renders nothing.
@@ -14,9 +15,7 @@ export default function Coverage() {
   if (!posts || posts.length === 0) return null
 
   return (
-    <div className="card">
-      <h2 className="section">From the newsroom</h2>
-      <p className="section-note">The latest Bucks coverage from Wausau Pilot &amp; Review.</p>
+    <Section kicker="From the newsroom" title="WPR Bucks coverage">
       {posts.map((p) => (
         <a
           className="coverage-row"
@@ -36,6 +35,6 @@ export default function Coverage() {
           </span>
         </a>
       ))}
-    </div>
+    </Section>
   )
 }

@@ -92,11 +92,20 @@ surfaces change.
 
 WPR system, non-negotiable: Fraunces (display), Public Sans (body),
 JetBrains Mono (data), WPR teal `#3A867C` for publication branding only
-(masthead kicker, sponsor band chrome). Team accent: Bucks green `#00471B`;
-backgrounds blend WPR cream `#F6F2E9` with Bucks cream `#EEE1C6`. Signature
-elements: the games-above-.500 race chart and the film room's win-probability
-chart, both over hardwood-toned `#b8905a` accents. Icon/OG art is a generic
-basketball — no team marks (trademark note in README).
+(light sponsor-band chrome). Team accent: Bucks green `#00471B`; backgrounds
+blend WPR cream `#F6F2E9` with Bucks cream `#EEE1C6`.
+
+The page grammar (deliberate, keep it): a dateline row, then the full-bleed
+deep-green masthead **banner** (cream kicker/dek on Bucks green, sponsor panel
+embedded dark-variant), then open editorial **Sections** — hardwood `#96703f`
+small-caps kicker over a big Fraunces headline, sitting on the page background.
+Boxes (`.card`) are reserved for genuinely tabular content (standings,
+linescore, team stats, injury list); everything else runs open so the page
+doesn't read as a stack of rectangles. Signature elements: the two-tone
+games-above-.500 race chart and the film room's win-probability chart (green
+above the line, rust below, swing dots), both over hardwood-toned `#b8905a`
+accents. Icon/OG art is a generic basketball — no team marks (trademark note
+in README).
 
 ## Environment
 

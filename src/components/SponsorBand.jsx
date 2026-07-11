@@ -3,11 +3,14 @@ import { track } from '../format.js'
 
 // One responsibility: render the paid sponsor, or the "available" house card
 // when the slot is unsold. `slot` labels the placement for per-slot click
-// reporting in Plausible.
-export default function SponsorBand({ slot }) {
+// reporting in Plausible; `variant="dark"` adapts the chrome to the green
+// masthead banner (translucent panel) vs. a light editorial section.
+export default function SponsorBand({ slot, variant = 'light' }) {
+  const cls = `sponsor-band ${variant === 'dark' ? 'dark' : ''}`
+
   if (!SPONSOR) {
     return (
-      <div className="sponsor-band open">
+      <div className={`${cls} open`}>
         <div className="sb-kicker">Sponsorship available</div>
         <div className="sb-row">
           <div className="sb-name">Reach Wisconsin sports fans</div>
@@ -20,7 +23,7 @@ export default function SponsorBand({ slot }) {
   const Tag = SPONSOR.url ? 'a' : 'div'
   return (
     <Tag
-      className="sponsor-band"
+      className={cls}
       {...(SPONSOR.url && {
         href: SPONSOR.url,
         target: '_blank',

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { TEAM_ABBR } from '../config.js'
 import { fetchGameDetail } from '../api.js'
 import { gameDate, periodLabel, track } from '../format.js'
+import Section from '../components/Section.jsx'
 import GameFlow from '../components/GameFlow.jsx'
 import ShotChart from '../components/ShotChart.jsx'
 
@@ -37,8 +38,7 @@ export default function FilmRoomTab({ schedule }) {
 
   return (
     <>
-      <div className="card">
-        <h2 className="section">How it unfolded</h2>
+      <Section kicker="The film room" title="How it unfolded">
         <div className="film-picker">
           <label htmlFor="film-game">Game</label>
           <select id="film-game" value={gameId ?? ''} onChange={(e) => pick(e.target.value)}>
@@ -56,10 +56,7 @@ export default function FilmRoomTab({ schedule }) {
         {detail && game && (
           <>
             <Linescore detail={detail} />
-            <GameFlow winProb={detail.winProb} turning={detail.turning} won={game.won} />
-            <p className="section-note">
-              Bucks win probability, play by play — 100 is a sure Bucks win; the ring marks the turning point.
-            </p>
+            <GameFlow winProb={detail.winProb} turning={detail.turning} swings={detail.swings} won={game.won} />
             {detail.turning && (
               <div className="turning-point">
                 <div className="tp-kicker">
@@ -75,17 +72,21 @@ export default function FilmRoomTab({ schedule }) {
             )}
           </>
         )}
-      </div>
+      </Section>
 
       {detail && game && (
         <>
-          <GameLeaders leaders={detail.leaders} />
+          <Section kicker="The box score" title="Game leaders">
+            <GameLeaders leaders={detail.leaders} />
+          </Section>
           <RunsCard scoring={detail.scoring} opponent={game.opponent.name} />
-          <div className="card">
-            <h2 className="section">Where the shots fell</h2>
-            <p className="section-note">Every Bucks field-goal attempt — filled dots went in.</p>
+          <Section
+            kicker="The shot chart"
+            title="Where the shots fell"
+            note="Every Bucks field-goal attempt — filled dots went in."
+          >
             <ShotChart shots={detail.shots} />
-          </div>
+          </Section>
           <TeamStats detail={detail} game={game} />
         </>
       )}
@@ -125,22 +126,24 @@ function GameLeaders({ leaders }) {
   // Bucks first, opponent second.
   const sorted = [...leaders].sort((a, b) => (a.abbr === TEAM_ABBR ? -1 : 1) - (b.abbr === TEAM_ABBR ? -1 : 1))
   return (
-    <div className="card">
-      <h2 className="section">Game leaders</h2>
-      <div className="game-leaders">
-        {sorted.map((team) => (
-          <div key={team.abbr}>
-            <h3 className="gl-team">{team.abbr === TEAM_ABBR ? 'Bucks' : team.abbr}</h3>
-            {team.cats.filter((c) => c.athlete).map((c) => (
-              <div className="gl-row" key={c.name}>
+    <div className="game-leaders">
+      {sorted.map((team) => (
+        <div key={team.abbr}>
+          <h3 className="gl-team">{team.abbr === TEAM_ABBR ? 'Bucks' : team.abbr}</h3>
+          {team.cats.filter((c) => c.athlete).map((c) => (
+            <div className="gl-row" key={c.name}>
+              {c.headshot
+                ? <img className="gl-face" src={c.headshot} alt="" loading="lazy" />
+                : <span className="gl-face gap" aria-hidden="true" />}
+              <span className="gl-body">
                 <span className="gl-cat">{c.label}</span>
                 <span className="gl-who">{c.athlete}</span>
-                <span className="gl-val">{c.value}</span>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+              </span>
+              <span className="gl-val">{c.value}</span>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   )
 }
@@ -166,8 +169,7 @@ function RunsCard({ scoring, opponent }) {
   const runs = biggestRuns(scoring)
   if (runs.length === 0) return null
   return (
-    <div className="card">
-      <h2 className="section">The big runs</h2>
+    <Section kicker="The swings" title="The big runs" note="Unanswered points, biggest first.">
       {runs.map((r, i) => (
         <div className="run-row" key={i}>
           <span className={`run-score ${r.ours ? 'ours' : 'theirs'}`}>{r.points}–0</span>
@@ -177,8 +179,7 @@ function RunsCard({ scoring, opponent }) {
           </span>
         </div>
       ))}
-      <p className="section-note" style={{ marginTop: 8 }}>Unanswered points, biggest first.</p>
-    </div>
+    </Section>
   )
 }
 
@@ -199,22 +200,23 @@ function TeamStats({ detail, game }) {
   const rows = STAT_ROWS.filter(([key]) => byKey[key])
   if (rows.length === 0) return null
   return (
-    <div className="card">
-      <h2 className="section">The team stats</h2>
-      <table className="team-stats">
-        <thead>
-          <tr><th></th><th>Bucks</th><th>{game.opponent.name}</th></tr>
-        </thead>
-        <tbody>
-          {rows.map(([key, label]) => (
-            <tr key={key}>
-              <td className="label">{label}</td>
-              <td>{byKey[key].us}</td>
-              <td>{byKey[key].them}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Section kicker="Head to head" title="The team stats">
+      <div className="card">
+        <table className="team-stats">
+          <thead>
+            <tr><th></th><th>Bucks</th><th>{game.opponent.name}</th></tr>
+          </thead>
+          <tbody>
+            {rows.map(([key, label]) => (
+              <tr key={key}>
+                <td className="label">{label}</td>
+                <td>{byKey[key].us}</td>
+                <td>{byKey[key].them}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
   )
 }

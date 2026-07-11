@@ -1,4 +1,5 @@
 import { TEAM_ABBR, VENUE } from '../config.js'
+import Section from '../components/Section.jsx'
 import GameHero from '../components/GameHero.jsx'
 import Storylines from '../components/Storylines.jsx'
 import RaceChart from '../components/RaceChart.jsx'
@@ -20,31 +21,36 @@ export default function SeasonTab({ schedule, standings }) {
 
       <Storylines schedule={schedule} standings={standings} />
 
-      <div className="pulse">
-        <Stat value={`${us.wins}–${us.losses}`} label="Record" />
-        <Stat value={`#${us.seed}`} label="East seed" />
-        <Stat value={us.streak} label="Streak" />
-        <Stat value={us.lastTen} label="Last 10" />
-        <Stat value={us.pointDiff} label="Point diff / game" />
-        <Stat value={us.homeRecord} label={`At ${VENUE.split(' ')[0]}`} />
-        <Stat value={us.roadRecord} label="On the road" />
-      </div>
+      <Section kicker="Season pulse" title="Where things stand">
+        <div className="pulse">
+          <Stat value={`${us.wins}–${us.losses}`} label="Record" />
+          <Stat value={`#${us.seed}`} label="East seed" />
+          <Stat value={us.streak} label="Streak" />
+          <Stat value={us.lastTen} label="Last 10" />
+          <Stat value={us.pointDiff} label="Point diff / game" />
+          <Stat value={us.homeRecord} label={`At ${VENUE.split(' ')[0]}`} />
+          <Stat value={us.roadRecord} label="On the road" />
+        </div>
+      </Section>
 
-      <div className="card" style={{ marginTop: 18 }}>
-        <h2 className="section">The season, game by game</h2>
-        <p className="section-note">Games above or below .500 after each regular-season game.</p>
+      <Section
+        kicker="The race"
+        title="The season, game by game"
+        note="Games above or below .500 after each regular-season game."
+      >
         <RaceChart games={played.filter((g) => !g.postseason)} />
-      </div>
+      </Section>
 
       <SponsorBand slot="season" />
 
       <PlayInOdds standings={standings} />
 
-      <div className="card">
-        <h2 className="section">Eastern Conference</h2>
-        <StandingsTable rows={standings.east} />
-        <VsCentral schedule={schedule} />
-      </div>
+      <Section kicker="Eastern Conference" title="The standings">
+        <div className="card">
+          <StandingsTable rows={standings.east} />
+          <VsCentral schedule={schedule} />
+        </div>
+      </Section>
 
       <RoadAhead schedule={schedule} standings={standings} />
     </>

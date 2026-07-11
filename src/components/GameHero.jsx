@@ -49,7 +49,7 @@ export default function GameHero({ schedule, standings }) {
   }
 
   return (
-    <div className="hero">
+    <div className={`hero ${mode}`}>
       <div className="hero-kicker">
         {mode === 'live' && <>
           <span className="live-dot" aria-hidden="true" />
@@ -68,8 +68,19 @@ export default function GameHero({ schedule, standings }) {
         {featured.cup && <span className="cup-tag">NBA Cup</span>}
       </div>
 
-      <TeamLine team={top} scheduled={mode === 'next'} />
-      <TeamLine team={bottom} scheduled={mode === 'next'} />
+      {mode === 'next' ? (
+        // Pre-game: a centered matchup lockup — logos, serif names, records.
+        <div className="hero-lockup">
+          <LockupTeam team={bucks} />
+          <div className="lock-at">{featured.home ? 'VS' : 'AT'}</div>
+          <LockupTeam team={other} />
+        </div>
+      ) : (
+        <>
+          <TeamLine team={top} />
+          <TeamLine team={bottom} />
+        </>
+      )}
 
       <div className="hero-context">
         {mode === 'next' && (
@@ -109,14 +120,22 @@ export default function GameHero({ schedule, standings }) {
   )
 }
 
-function TeamLine({ team, scheduled }) {
+function TeamLine({ team }) {
   return (
     <div className={`hero-team ${team.won ? 'won' : ''}`}>
       {team.logo && <img src={team.logo} alt="" />}
       <span className="name">{team.name}</span>
-      {scheduled
-        ? <span className="record">{team.record ?? ''}</span>
-        : <span className="score">{team.pts}</span>}
+      <span className="score">{team.pts}</span>
+    </div>
+  )
+}
+
+function LockupTeam({ team }) {
+  return (
+    <div className="lock-team">
+      {team.logo && <img src={team.logo} alt="" />}
+      <div className="lock-name">{team.name}</div>
+      {team.record && <div className="lock-rec">{team.record}</div>}
     </div>
   )
 }

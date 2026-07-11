@@ -35,10 +35,12 @@ export const SPONSOR = null
 export const SPONSOR_INQUIRY = 'sales@wausaupilotandreview.com'
 
 // WPR's own Bucks coverage (WordPress REST). categoryId is the site's
-// "Milwaukee Bucks" category. null base disables the section.
+// "Milwaukee Bucks" category; archive is where bookmarks/copies point when
+// the tracker is embedded. null base disables the section.
 export const WPR_NEWS = {
   base: 'https://wausaupilotandreview.com/wp-json/wp/v2',
   categoryId: 567085021,
+  archive: 'https://wausaupilotandreview.com/category/milwaukee-bucks/',
 }
 
 // Where mini-card taps land by default (overridable per-embed via ?to=)

@@ -1,6 +1,7 @@
 // Cumulative games above/below .500 across the regular season, drawn as a
-// single SVG path over a hardwood-toned baseline. Chart-led, like the
-// Brewers division-race chart this page descends from.
+// single SVG path over a hardwood-toned baseline, with a two-tone area fill
+// (green above .500, rust below) so the season's shape reads at a glance.
+// Chart-led, like the Brewers division-race chart this page descends from.
 
 const W = 820
 const H = 240
@@ -21,9 +22,11 @@ export default function RaceChart({ games }) {
   const x = (game) => PAD.left + ((game - 1) / Math.max(1, series.length - 1)) * (W - PAD.left - PAD.right)
   const y = (d) => PAD.top + ((maxAbs - d) / (2 * maxAbs)) * (H - PAD.top - PAD.bottom)
 
-  const path = series
+  const line = series
     .map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.game).toFixed(1)},${y(p.diff).toFixed(1)}`)
     .join(' ')
+  // Close the line down to the .500 baseline for the two-tone fill.
+  const area = `${line} L${x(series.length).toFixed(1)},${y(0).toFixed(1)} L${x(1).toFixed(1)},${y(0).toFixed(1)} Z`
 
   const gridStep = maxAbs > 12 ? 10 : 5
   const gridLines = []
@@ -37,6 +40,11 @@ export default function RaceChart({ games }) {
     <div className="race-chart">
       <svg viewBox={`0 0 ${W} ${H}`} role="img"
         aria-label={`Games above .500 across ${series.length} games, finishing at ${last.diff >= 0 ? '+' : ''}${last.diff}`}>
+        <defs>
+          <clipPath id="race-above"><rect x="0" y="0" width={W} height={y(0)} /></clipPath>
+          <clipPath id="race-below"><rect x="0" y={y(0)} width={W} height={H - y(0)} /></clipPath>
+        </defs>
+
         {gridLines.map((d) => (
           <g key={d}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(d)} y2={y(d)}
@@ -48,13 +56,17 @@ export default function RaceChart({ games }) {
           </g>
         ))}
 
+        {/* winning / losing tint, split at .500 */}
+        <path d={area} fill="var(--win)" opacity="0.1" clipPath="url(#race-above)" />
+        <path d={area} fill="var(--loss)" opacity="0.1" clipPath="url(#race-below)" />
+
         {/* .500 baseline — the hardwood */}
         <line x1={PAD.left} x2={W - PAD.right} y1={y(0)} y2={y(0)}
           stroke="#b8905a" strokeWidth="2" />
         <text x={PAD.left - 8} y={y(0) + 4} textAnchor="end"
           fontFamily="var(--font-data)" fontSize="11" fill="#b8905a">.500</text>
 
-        <path d={path} fill="none" stroke="var(--team)" strokeWidth="2.5"
+        <path d={line} fill="none" stroke="var(--team)" strokeWidth="2.5"
           strokeLinejoin="round" strokeLinecap="round" />
 
         <circle cx={x(last.game)} cy={y(last.diff)} r="4" fill="var(--team)" />
