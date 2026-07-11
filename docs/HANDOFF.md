@@ -17,7 +17,9 @@ Embed snippets for all of them are in `README.md` (copy-paste into a WordPress
 **Custom HTML** block). Two behaviors worth knowing:
 
 - **Deep links:** `/?tab=schedule`, `/?tab=leaders` (Season stats), `/?tab=film`
-  open a specific tab — link them from game stories.
+  open a specific tab — link them from game stories. A specific box score is
+  `/?tab=film&game=<espn-event-id>` (every result row links there; copy the URL
+  after clicking any game).
 - **Minis:** add `?to=https://wausaupilotandreview.com/milwaukee-bucks/` so a tap
   lands on the WPR Bucks page instead of the bare tracker. https URLs only.
 
@@ -41,7 +43,7 @@ manually (Actions tab → Run workflow) — that re-renders it.
 
 `src/config.js` → `SPONSOR`. While `null`, the two sponsor slots show a
 "Sponsorship available" house card pointing at `SPONSOR_INQUIRY`
-(sales@wausaupilotandreview.com). To go paid:
+(weber.chris@wausaupilotandreview.com). To go paid:
 
 ```js
 export const SPONSOR = {
@@ -99,7 +101,8 @@ Everything else follows the config.
 ## What reports to Plausible
 
 `Tab` (tab opens), `Share`, `Calendar` (add-to-calendar), `Mini Click`,
-`Coverage Click` (newsroom links), `Sponsor Click`, `Film Game` (film-room game
+`Coverage Click` (newsroom links), `Sponsor Click`, `Box Score` (game clicks
+into the film room, tagged `schedule`/`hero`), `Film Game` (film-room game
 picks), `Bookmark` (copy link), `Widget Error` (render failures — should be ~0).
 Dashboard: plausible.io, site `rowanflynnpilot.github.io`.
 

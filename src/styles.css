@@ -368,6 +368,14 @@ html, body {
 
 .hero-context { font-size: 0.84rem; color: var(--ink-soft); margin-top: 10px; line-height: 1.65; }
 
+.hero-recap {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.98rem;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
 .hero-actions {
   display: flex;
   gap: 10px;
@@ -520,6 +528,49 @@ html, body {
   padding-left: 104px;
   margin-top: -4px;
 }
+
+/* Generated one-liner under a final + the box-score affordance. */
+.game-row .recap {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding-left: 104px;
+  margin-top: -3px;
+}
+
+.game-row .recap .txt {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.bs-hint {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--team);
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* Clickable finals: a real link that reads as a row. */
+a.game-row-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+a.game-row-link:hover,
+a.game-row-link:focus-visible {
+  background: var(--cream);
+}
+
+a.game-row-link:focus-visible { outline: 2px solid var(--wpr-teal); outline-offset: -2px; }
+a.game-row-link:hover .bs-hint { text-decoration: underline; }
 
 /* ---------- Leaders ---------- */
 
@@ -722,6 +773,45 @@ html, body {
   padding: 7px 10px;
   max-width: 100%;
 }
+
+.film-recap {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0 0 14px;
+  max-width: 620px;
+}
+
+.box-scroll { overflow-x: auto; }
+
+.box-table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.83rem; }
+
+.box-table th {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  text-align: right;
+  padding: 4px 9px;
+  border-bottom: 1px solid var(--line);
+}
+
+.box-table th.player { text-align: left; }
+
+.box-table td {
+  font-family: var(--font-data);
+  font-size: 0.78rem;
+  text-align: right;
+  padding: 5px 9px;
+  border-bottom: 1px solid var(--cream-deep);
+  white-space: nowrap;
+}
+
+.box-table td.player { font-family: var(--font-body); font-weight: 600; text-align: left; }
+.box-table td.player .starter { color: #b8905a; font-weight: 700; }
+.box-table tbody tr:last-child td { border-bottom: none; }
 
 .linescore { border-collapse: collapse; font-size: 0.85rem; margin-bottom: 16px; }
 .linescore th {
@@ -1112,6 +1202,7 @@ html, body {
   .standings .hide-sm { display: none; }
   .game-row { grid-template-columns: 78px 1fr auto; }
   .game-row .detail { padding-left: 90px; }
+  .game-row .recap { padding-left: 90px; flex-wrap: wrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {

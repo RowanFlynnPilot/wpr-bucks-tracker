@@ -60,8 +60,14 @@ Bump to 2027 when the 2026–27 schedule publishes (~October).
 
 - `index.html` — full tracker, tabs: Season / Schedule / Season stats (`leaders`)
   / Film room (`film`). Tab **ids** are stable — they key `?tab=` deep links and
-  Plausible events; labels can change. Posts `wpr-bucks-height` to the parent on
-  every layout change (ResizeObserver).
+  Plausible events; labels can change. `?game=<event-id>` deep-links a specific
+  film-room box score (invalid ids fall back to the latest final). Posts
+  `wpr-bucks-height` to the parent on every layout change (ResizeObserver).
+- `src/recaps.js` — 1–2 sentence game recaps generated from the schedule alone
+  (margin buckets × seeded template banks; hash of the game id keeps each
+  game's wording stable across renders). Every claim must stay derivable from
+  real data — score, margin, OT, home/road, running record, streaks. Surfaced
+  on schedule rows, the hero, and the film room.
 - `mini.html` — featured-game card (live > next > last final). `?to=` sets tap
   destination (https-only, guarded in `mini-shared.js`).
 - `mini-standings.html` — East play-in field, Bucks always included.

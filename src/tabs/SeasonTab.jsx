@@ -9,7 +9,7 @@ import PlayInOdds from '../components/PlayInOdds.jsx'
 import RoadAhead from '../components/RoadAhead.jsx'
 import SponsorBand from '../components/SponsorBand.jsx'
 
-export default function SeasonTab({ schedule, standings }) {
+export default function SeasonTab({ schedule, standings, onOpenGame }) {
   // Presence guaranteed by fetchStandings — it throws before render otherwise.
   const us = standings.east.find((row) => row.abbr === TEAM_ABBR)
 
@@ -17,7 +17,7 @@ export default function SeasonTab({ schedule, standings }) {
 
   return (
     <>
-      <GameHero schedule={schedule} standings={standings} />
+      <GameHero schedule={schedule} standings={standings} onOpenGame={onOpenGame} />
 
       <Storylines schedule={schedule} standings={standings} />
 

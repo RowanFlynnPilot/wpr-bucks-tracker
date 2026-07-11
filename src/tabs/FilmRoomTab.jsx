@@ -1,47 +1,48 @@
 import { useEffect, useState } from 'react'
 import { TEAM_ABBR } from '../config.js'
 import { fetchGameDetail } from '../api.js'
-import { gameDate, periodLabel, track } from '../format.js'
+import { gameDate, periodLabel } from '../format.js'
+import { buildRecapContext, recapFor } from '../recaps.js'
 import Section from '../components/Section.jsx'
 import GameFlow from '../components/GameFlow.jsx'
 import ShotChart from '../components/ShotChart.jsx'
 
-// Replay any final: win probability, the turning point, game leaders, the big
-// runs, the shot chart, and the team-stats comparison — all from ESPN's summary
-// endpoint, fetched per game on demand and cached in api.js.
-export default function FilmRoomTab({ schedule }) {
+// Replay any final: win probability, the turning point, the full box score,
+// game leaders, the big runs, the shot chart, and the team-stats comparison —
+// all from ESPN's summary endpoint, fetched per game on demand and cached in
+// api.js. The selected game lives in App (deep-linkable as ?game=), so any
+// schedule row or the hero can land here on a specific box score.
+export default function FilmRoomTab({ schedule, gameId, onPickGame }) {
   const finals = [...schedule.events.filter((e) => e.final)].reverse()
-  const [gameId, setGameId] = useState(finals[0]?.id ?? null)
+  // Validate the requested id against real finals; default to the latest.
+  const selected = finals.some((g) => g.id === gameId) ? gameId : finals[0]?.id ?? null
   const [detail, setDetail] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!gameId) return
+    if (!selected) return
     let alive = true
     setDetail(null)
     setError(null)
-    fetchGameDetail(gameId)
+    fetchGameDetail(selected)
       .then((d) => { if (alive) setDetail(d) })
       .catch((err) => { if (alive) setError(err.message) })
     return () => { alive = false }
-  }, [gameId])
+  }, [selected])
 
   if (finals.length === 0) {
     return <div className="status-block">The film room opens after the season's first final.</div>
   }
 
-  const game = finals.find((g) => g.id === gameId)
-  const pick = (id) => {
-    setGameId(id)
-    track('Film Game')
-  }
+  const game = finals.find((g) => g.id === selected)
+  const recap = game ? recapFor(game, buildRecapContext(schedule.events)) : null
 
   return (
     <>
       <Section kicker="The film room" title="How it unfolded">
         <div className="film-picker">
           <label htmlFor="film-game">Game</label>
-          <select id="film-game" value={gameId ?? ''} onChange={(e) => pick(e.target.value)}>
+          <select id="film-game" value={selected ?? ''} onChange={(e) => onPickGame(e.target.value)}>
             {finals.map((g) => (
               <option key={g.id} value={g.id}>
                 {gameDate(g.date)} · {g.home ? 'vs' : 'at'} {g.opponent.name} · {g.won ? 'W' : 'L'}{' '}
@@ -55,6 +56,7 @@ export default function FilmRoomTab({ schedule }) {
         {!error && !detail && <div className="status-block">Rolling the tape…</div>}
         {detail && game && (
           <>
+            {recap && <p className="film-recap">{recap}</p>}
             <Linescore detail={detail} />
             <GameFlow winProb={detail.winProb} turning={detail.turning} swings={detail.swings} won={game.won} />
             {detail.turning && (
@@ -79,6 +81,7 @@ export default function FilmRoomTab({ schedule }) {
           <Section kicker="The box score" title="Game leaders">
             <GameLeaders leaders={detail.leaders} />
           </Section>
+          <BoxScoreTable boxScore={detail.boxScore} />
           <RunsCard scoring={detail.scoring} opponent={game.opponent.name} />
           <Section
             kicker="The shot chart"
@@ -145,6 +148,48 @@ function GameLeaders({ leaders }) {
         </div>
       ))}
     </div>
+  )
+}
+
+// The Bucks player table. ESPN sends the column names alongside the rows, so
+// we select the columns we want by name and stay stable if their order shifts.
+const BOX_COLUMNS = ['MIN', 'PTS', 'REB', 'AST', 'FG', '3PT', '+/-']
+
+function BoxScoreTable({ boxScore }) {
+  if (!boxScore || boxScore.rows.length === 0) return null
+  const idx = BOX_COLUMNS.map((c) => [c, boxScore.names.indexOf(c)]).filter(([, i]) => i >= 0)
+  if (idx.length === 0) return null
+  const ptsIdx = boxScore.names.indexOf('PTS')
+  const rows = [...boxScore.rows].sort(
+    (a, b) => (parseInt(b.stats[ptsIdx], 10) || 0) - (parseInt(a.stats[ptsIdx], 10) || 0)
+  )
+  return (
+    <Section kicker="The numbers" title="Bucks box score">
+      <div className="card box-scroll">
+        <table className="box-table">
+          <thead>
+            <tr>
+              <th className="player">Player</th>
+              {idx.map(([label]) => <th key={label}>{label}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={`${r.name}-${r.jersey}`}>
+                <td className="player">
+                  {r.name}
+                  {r.starter && <span className="starter" title="Starter"> *</span>}
+                </td>
+                {idx.map(([label, i]) => <td key={label}>{r.stats[i]}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="section-note" style={{ marginTop: 10 }}>
+          Sorted by points · * started · DNPs omitted.
+        </p>
+      </div>
+    </Section>
   )
 }
 

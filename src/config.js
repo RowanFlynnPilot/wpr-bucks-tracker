@@ -33,7 +33,7 @@ export const TEAM_LOGO = 'https://a.espncdn.com/i/teamlogos/nba/500/mil.png'
 // { name: 'Culver's of Wausau', url: 'https://…', logo: 'https://…', tagline: '…' }
 // (`let`, not `const`: sales demo mode at the bottom of this file fills open slots.)
 export let SPONSOR = null
-export const SPONSOR_INQUIRY = 'sales@wausaupilotandreview.com'
+export const SPONSOR_INQUIRY = 'weber.chris@wausaupilotandreview.com'
 
 // Where to watch this week: bar/restaurant listings, sold per listing. Each entry:
 //   { name: 'The Bar', tagline: '…', images: ['hero.jpg', 'thumb1.jpg', …],

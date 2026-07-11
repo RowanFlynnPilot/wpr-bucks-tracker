@@ -331,5 +331,22 @@ async function loadGameDetail(eventId) {
     .filter((k) => k in theirs)
     .map((k) => ({ key: k, label: ours[k].label ?? ours[k].displayName ?? k, us: ours[k].displayValue, them: theirs[k].displayValue }))
 
-  return { usHome, home: side(home), away: side(away), winProb, turning, swings, shots, scoring, leaders, teamStats }
+  // The Bucks player box score. Column names ride along from ESPN
+  // (MIN/PTS/FG/… order varies by season); players with no stat line (DNP)
+  // are filtered at this boundary.
+  const ourPlayers = (d.boxscore?.players ?? []).find((p) => p.team.abbreviation === TEAM_ABBR)
+  const group = ourPlayers?.statistics?.[0]
+  const boxScore = {
+    names: group?.names ?? [],
+    rows: (group?.athletes ?? [])
+      .filter((a) => (a.stats ?? []).length > 0)
+      .map((a) => ({
+        name: a.athlete?.shortName ?? a.athlete?.displayName ?? '',
+        jersey: a.athlete?.jersey ?? '',
+        starter: a.starter === true,
+        stats: a.stats,
+      })),
+  }
+
+  return { usHome, home: side(home), away: side(away), winProb, turning, swings, shots, scoring, leaders, teamStats, boxScore }
 }

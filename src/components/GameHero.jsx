@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { TEAM_ABBR, TEAM_LOGO } from '../config.js'
 import { countdown, gameDate, gameTime, periodLabel, track } from '../format.js'
+import { buildRecapContext, recapFor } from '../recaps.js'
 
 // The featured game — live > next > last final, the same pick as the mini scoreboard.
 // The emotional center of the Season tab: score or countdown, venue and TV, where the
 // opponent sits, the season series, and share / add-to-calendar actions.
-export default function GameHero({ schedule, standings }) {
+export default function GameHero({ schedule, standings, onOpenGame }) {
   // Re-render every 30s so the "tips in" line stays honest between data refreshes.
   const [, setTick] = useState(0)
   useEffect(() => {
@@ -83,6 +84,9 @@ export default function GameHero({ schedule, standings }) {
       )}
 
       <div className="hero-context">
+        {mode === 'last' && (
+          <div className="hero-recap">{recapFor(featured, buildRecapContext(events))}</div>
+        )}
         {mode === 'next' && (
           <div>
             {gameDate(featured.date)} · {gameTime(featured.date)} CT
@@ -104,6 +108,11 @@ export default function GameHero({ schedule, standings }) {
       </div>
 
       <div className="hero-actions">
+        {mode === 'last' && onOpenGame && (
+          <button className="copy-link" onClick={() => onOpenGame(featured.id)}>
+            Box score <span aria-hidden="true">→</span>
+          </button>
+        )}
         <button className="copy-link" onClick={share}>Share this game</button>
         {mode === 'next' && (
           <a

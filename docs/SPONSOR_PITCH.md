@@ -44,7 +44,7 @@ sponsors get the numbers.
 ## The ask
 
 ▢ $/month season sponsorship (Oct–Apr, playoffs included) · sold by
-sales@wausaupilotandreview.com · creative needs: logo (PNG/SVG on white),
+weber.chris@wausaupilotandreview.com · creative needs: logo (PNG/SVG on white),
 click-through URL, one-line tagline.
 
 *Note: the tracker uses team colors and ESPN-hosted imagery with a

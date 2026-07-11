@@ -47,6 +47,11 @@ export default function App() {
     const t = new URLSearchParams(window.location.search).get('tab')
     return TABS.some((x) => x.id === t) ? t : 'season'
   })
+  // The film room's selected game — lifted here so any tab can deep-link a box
+  // score (?game= survives reloads; FilmRoomTab validates against real finals).
+  const [filmGameId, setFilmGameId] = useState(
+    () => new URLSearchParams(window.location.search).get('game')
+  )
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [updatedAt, setUpdatedAt] = useState(null)
@@ -99,8 +104,29 @@ export default function App() {
     const url = new URL(window.location)
     if (next === 'season') url.searchParams.delete('tab')
     else url.searchParams.set('tab', next)
+    url.searchParams.delete('game') // manual tab hops drop the box-score deep link
     history.replaceState(null, '', url)
     track('Tab', { tab: next })
+  }
+
+  // A game click anywhere (schedule rows, the hero) lands on its box score.
+  const openBoxScore = (id, from) => {
+    setFilmGameId(id)
+    setTab('film')
+    const url = new URL(window.location)
+    url.searchParams.set('tab', 'film')
+    url.searchParams.set('game', id)
+    history.replaceState(null, '', url)
+    track('Box Score', { from })
+  }
+
+  // The film room's own picker keeps the deep link current too.
+  const pickFilmGame = (id) => {
+    setFilmGameId(id)
+    const url = new URL(window.location)
+    url.searchParams.set('game', id)
+    history.replaceState(null, '', url)
+    track('Film Game')
   }
 
   const copyLink = async () => {
@@ -164,10 +190,16 @@ export default function App() {
       {!error && !data && <div className="status-block">Warming up the scoreboard…</div>}
       {/* Keyed by tab so a crash in one tab doesn't leave the boundary tripped on another. */}
       <ErrorBoundary key={tab}>
-        {data && tab === 'season' && <SeasonTab schedule={data.schedule} standings={data.standings} />}
-        {data && tab === 'schedule' && <ScheduleTab schedule={data.schedule} />}
+        {data && tab === 'season' && (
+          <SeasonTab schedule={data.schedule} standings={data.standings} onOpenGame={(id) => openBoxScore(id, 'hero')} />
+        )}
+        {data && tab === 'schedule' && (
+          <ScheduleTab schedule={data.schedule} onOpenGame={(id) => openBoxScore(id, 'schedule')} />
+        )}
         {data && tab === 'leaders' && <LeadersTab standings={data.standings} />}
-        {data && tab === 'film' && <FilmRoomTab schedule={data.schedule} />}
+        {data && tab === 'film' && (
+          <FilmRoomTab schedule={data.schedule} gameId={filmGameId} onPickGame={pickFilmGame} />
+        )}
       </ErrorBoundary>
 
       <footer className="footer">
