@@ -1,9 +1,11 @@
 // Everything tweakable lives here. To repoint at a different NBA team,
 // change TEAM_ID and TEAM_ABBR. To roll into a new season, bump SEASON.
 
-// ESPN uses the season's END year: 2026 = the 2025-26 season.
-// Bump to 2027 when the 2026-27 schedule is published (October).
-export const SEASON = 2026
+// ESPN uses the season's END year: 2027 = the 2026-27 season.
+// Bump to 2028 once ESPN publishes the 2027-28 schedule (it appeared in
+// mid-September in 2026). Pre-opening-night 0–0 data is handled — the tracker
+// switches to its preseason views on its own until the first tip.
+export const SEASON = 2027
 
 export const TEAM_ID = '15' // Milwaukee Bucks (ESPN)
 export const TEAM_ABBR = 'MIL'

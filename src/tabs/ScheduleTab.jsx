@@ -9,13 +9,16 @@ import InjuryReport from '../components/InjuryReport.jsx'
 import Coverage from '../components/Coverage.jsx'
 
 const INITIAL_RESULTS = 10
+const INITIAL_UPCOMING = 8
 
 export default function ScheduleTab({ schedule, onOpenGame }) {
   const [showAll, setShowAll] = useState(false)
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false)
 
   const played = schedule.events.filter((e) => e.final)
   const upcoming = schedule.events.filter((e) => !e.final)
   const recent = showAll ? [...played].reverse() : [...played].reverse().slice(0, INITIAL_RESULTS)
+  const ahead = showAllUpcoming ? upcoming : upcoming.slice(0, INITIAL_UPCOMING)
   const nextHome = upcoming.find((g) => g.home && !g.live)
   const recaps = buildRecapContext(schedule.events)
 
@@ -27,12 +30,18 @@ export default function ScheduleTab({ schedule, onOpenGame }) {
         {upcoming.length > 0 && (
           <div className="card">
             <h3 className="group-label">Coming up</h3>
-            {upcoming.slice(0, 8).map((g) => <GameRow key={g.id} game={g} detail />)}
+            {ahead.map((g) => <GameRow key={g.id} game={g} detail />)}
+            {upcoming.length > INITIAL_UPCOMING && (
+              <button className="copy-link" style={{ marginTop: 12 }}
+                onClick={() => setShowAllUpcoming(!showAllUpcoming)}>
+                {showAllUpcoming ? 'Show the next few only' : `Show all ${upcoming.length} upcoming games`}
+              </button>
+            )}
           </div>
         )}
-        <div className="card">
+        {/* Nothing to list before the first final — the Coming up card carries the tab. */}
+        {played.length > 0 && <div className="card">
           <h3 className="group-label">Results</h3>
-          {played.length === 0 && <p className="section-note">No games played yet this season.</p>}
           {recent.map((g) => (
             <GameRow key={g.id} game={g} recap={recapFor(g, recaps)} onOpen={onOpenGame} />
           ))}
@@ -42,7 +51,7 @@ export default function ScheduleTab({ schedule, onOpenGame }) {
               {showAll ? 'Show recent only' : `Show all ${played.length} games`}
             </button>
           )}
-        </div>
+        </div>}
       </Section>
 
       {nextHome && (

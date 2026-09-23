@@ -29,10 +29,11 @@ function MiniDigest() {
   const next = events.find((e) => !e.final && !e.live)
   const played = events.filter((e) => e.final)
   const featured = live ?? next ?? played[played.length - 1] ?? null
-  const heading = live ? 'Live now' : featured?.final ? 'Final' : 'Next up'
+  const heading = live ? 'Live now' : featured?.final ? 'Final' : played.length === 0 ? 'Opening night' : 'Next up'
 
   const east = data.standings.east
-  const shown = east.filter((r) => r.seed <= PLAY_IN_LINE || r.abbr === TEAM_ABBR)
+  // Unseeded (preseason) teams all show, alphabetical — see fetchStandings.
+  const shown = east.filter((r) => r.seed == null || r.seed <= PLAY_IN_LINE || r.abbr === TEAM_ABBR)
 
   const stamp = new Date().toLocaleString('en-US', {
     timeZone: 'America/Chicago',
@@ -78,7 +79,7 @@ function MiniDigest() {
               row.abbr === TEAM_ABBR ? 'us' : '',
               row.seed === PLAYOFF_LINE ? 'playoff-line' : '',
             ].filter(Boolean).join(' ')}>
-              <td className="seed">{row.seed}</td>
+              <td className="seed">{row.seed ?? '–'}</td>
               <td className="team">
                 {row.logo && <img src={row.logo} alt="" />}
                 {row.name}

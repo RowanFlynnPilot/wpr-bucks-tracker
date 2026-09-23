@@ -1,4 +1,6 @@
 import { TEAM_ABBR, VENUE } from '../config.js'
+import { countdown } from '../format.js'
+import { isPreseason, scheduleFacts } from '../scheduleFacts.js'
 import Section from '../components/Section.jsx'
 import GameHero from '../components/GameHero.jsx'
 import Storylines from '../components/Storylines.jsx'
@@ -14,6 +16,8 @@ export default function SeasonTab({ schedule, standings, onOpenGame }) {
   const us = standings.east.find((row) => row.abbr === TEAM_ABBR)
 
   const played = schedule.events.filter((e) => e.final)
+  const preseason = isPreseason(schedule.events)
+  const eastUnplayed = standings.east.every((r) => r.played === 0)
 
   return (
     <>
@@ -21,39 +25,69 @@ export default function SeasonTab({ schedule, standings, onOpenGame }) {
 
       <Storylines schedule={schedule} standings={standings} />
 
-      <Section kicker="Season pulse" title="Where things stand">
-        <div className="pulse">
-          <Stat value={`${us.wins}–${us.losses}`} label="Record" />
-          <Stat value={`#${us.seed}`} label="East seed" />
-          <Stat value={us.streak} label="Streak" />
-          <Stat value={us.lastTen} label="Last 10" />
-          <Stat value={us.pointDiff} label="Point diff / game" />
-          <Stat value={us.homeRecord} label={`At ${VENUE.split(' ')[0]}`} />
-          <Stat value={us.roadRecord} label="On the road" />
-        </div>
-      </Section>
+      {preseason ? <SeasonAhead events={schedule.events} /> : (
+        <Section kicker="Season pulse" title="Where things stand">
+          <div className="pulse">
+            <Stat value={`${us.wins}–${us.losses}`} label="Record" />
+            <Stat value={us.seed ? `#${us.seed}` : '–'} label="East seed" />
+            <Stat value={us.streak} label="Streak" />
+            <Stat value={us.lastTen} label="Last 10" />
+            <Stat value={us.pointDiff} label="Point diff / game" />
+            <Stat value={us.homeRecord} label={`At ${VENUE.split(' ')[0]}`} />
+            <Stat value={us.roadRecord} label="On the road" />
+          </div>
+        </Section>
+      )}
 
-      <Section
-        kicker="The race"
-        title="The season, game by game"
-        note="Games above or below .500 after each regular-season game."
-      >
-        <RaceChart games={played.filter((g) => !g.postseason)} />
-      </Section>
+      {/* No race to draw before the first final — the storylines say so. */}
+      {!preseason && (
+        <Section
+          kicker="The race"
+          title="The season, game by game"
+          note="Games above or below .500 after each regular-season game."
+        >
+          <RaceChart games={played.filter((g) => !g.postseason)} />
+        </Section>
+      )}
 
       <SponsorBand slot="season" />
 
       <PlayInOdds standings={standings} />
 
-      <Section kicker="Eastern Conference" title="The standings">
+      <Section
+        kicker="Eastern Conference"
+        title="The standings"
+        note={eastUnplayed ? "Everyone's 0–0 until opening night — the table fills in once games are played." : null}
+      >
         <div className="card">
-          <StandingsTable rows={standings.east} />
+          {/* Fifteen identical 0–0 rows say nothing; the table starts with the season. */}
+          {!eastUnplayed && <StandingsTable rows={standings.east} />}
           <VsCentral schedule={schedule} />
         </div>
       </Section>
 
       <RoadAhead schedule={schedule} standings={standings} />
     </>
+  )
+}
+
+// The preseason pulse: calendar facts instead of a row of zeros.
+function SeasonAhead({ events }) {
+  const facts = scheduleFacts(events)
+  if (!facts.opener) return null
+  const opener = facts.opener.date.toLocaleDateString('en-US', {
+    timeZone: 'America/Chicago', month: 'short', day: 'numeric',
+  })
+  return (
+    <Section kicker="Season pulse" title="The season ahead">
+      <div className="pulse">
+        <Stat value={opener} label="Opening night" />
+        <Stat value={countdown(facts.opener.date)} label="Until tip-off" />
+        <Stat value={facts.scheduled} label="Dates set" />
+        <Stat value={facts.home} label={`At ${VENUE.split(' ')[0]}`} />
+        <Stat value={facts.backToBacks} label="Back-to-backs" />
+      </div>
+    </Section>
   )
 }
 

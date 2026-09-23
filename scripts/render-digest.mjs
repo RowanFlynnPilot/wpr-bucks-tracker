@@ -32,6 +32,25 @@ try {
     locale: 'en-US',
     timezoneId: 'America/Chicago',
   })
+
+  // ESPN's edge refuses headless Chromium (403 with no CORS header — the page
+  // sees "Failed to fetch"); a spoofed user agent doesn't get past it, but a
+  // plain Node request does. So the page's ESPN calls are relayed through Node
+  // and handed back with the CORS header the browser expects. Same requests,
+  // same responses — only the transport differs. Every digest render from
+  // Aug 4 to Sep 23, 2026 failed on this before it was caught.
+  await page.route(/\.espn\.com\//, async (route) => {
+    const res = await fetch(route.request().url())
+    await route.fulfill({
+      status: res.status,
+      body: Buffer.from(await res.arrayBuffer()),
+      headers: {
+        'content-type': res.headers.get('content-type') ?? 'application/json',
+        'access-control-allow-origin': '*',
+      },
+    })
+  })
+
   await page.goto(url, { waitUntil: 'load', timeout: 60000 })
 
   // Wait for real data: the standings table always populates; the featured-game
@@ -41,7 +60,7 @@ try {
   await page
     .waitForFunction(() => {
       const t = document.querySelector('.mini-card')?.innerText || ''
-      return /live now|final|next up/i.test(t) && /eastern conference/i.test(t)
+      return /live now|final|next up|opening night/i.test(t) && /eastern conference/i.test(t)
     }, { timeout: 30000 })
     .catch(() => console.warn('Proceeding without every section (deep offseason?).'))
 

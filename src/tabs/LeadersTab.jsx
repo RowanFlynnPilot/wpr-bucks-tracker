@@ -1,17 +1,26 @@
 import { useEffect, useState } from 'react'
+import { SEASON, TEAM_ABBR } from '../config.js'
 import { fetchLeaders } from '../api.js'
 import Section from '../components/Section.jsx'
 import TeamProfile from '../components/TeamProfile.jsx'
 
+// ESPN end-year → "2025-26".
+const seasonLabel = (endYear) => `${endYear - 1}-${String(endYear).slice(2)}`
+
 // Loaded on first visit to the tab — the leaders call fans out into athlete +
-// stat-line fetches, so it shouldn't tax the initial page load.
+// stat-line fetches, so it shouldn't tax the initial page load. Before the
+// Bucks' first game ESPN has no leaders for the new season (it 404s), so the
+// tab shows last season's final board, labeled as such.
 export default function LeadersTab({ standings }) {
   const [categories, setCategories] = useState(null)
   const [error, setError] = useState(null)
+  const us = standings.east.find((r) => r.abbr === TEAM_ABBR)
+  const preseason = us.played === 0
+  const season = preseason ? SEASON - 1 : SEASON
 
   useEffect(() => {
-    fetchLeaders().then(setCategories).catch((err) => setError(err.message))
-  }, [])
+    fetchLeaders(season).then(setCategories).catch((err) => setError(err.message))
+  }, [season])
 
   if (error) {
     return <div className="status-block error">Couldn't load team leaders. ({error})</div>
@@ -31,14 +40,14 @@ export default function LeadersTab({ standings }) {
       <div className="featured-grid">
         {featuredScorer && (
           <FeaturedLeader
-            kicker="Carrying the scoring"
+            kicker={preseason ? 'Carried the scoring' : 'Carrying the scoring'}
             athlete={featuredScorer}
             statline={featuredLine(featuredScorer, points.leaders[0].value, 'PPG', ['fieldGoalPct', '% FG'], ['avgRebounds', ' REB'])}
           />
         )}
         {showAnchor && (
           <FeaturedLeader
-            kicker="Anchoring the paint"
+            kicker={preseason ? 'Anchored the paint' : 'Anchoring the paint'}
             athlete={featuredAnchor}
             statline={featuredLine(featuredAnchor, blocks.leaders[0].value, 'BPG', ['avgRebounds', ' RPG'], ['avgMinutes', ' MIN'])}
           />
@@ -47,8 +56,10 @@ export default function LeadersTab({ standings }) {
 
       <Section
         kicker="The leaders"
-        title="Who's carrying it"
-        note="Regular-season team leaders. Players dealt away mid-season keep the numbers they put up here."
+        title={preseason ? 'Who carried it last season' : "Who's carrying it"}
+        note={preseason
+          ? `Final ${seasonLabel(season)} leaders — the ${seasonLabel(SEASON)} board takes over after opening night. Players who've since moved on keep the numbers they put up here.`
+          : 'Regular-season team leaders. Players dealt away mid-season keep the numbers they put up here.'}
       >
         <div className="leader-grid">
           {categories.map((cat) => (
@@ -74,7 +85,8 @@ export default function LeadersTab({ standings }) {
         </div>
       </Section>
 
-      {standings && <TeamProfile standings={standings} />}
+      {/* League ranks of a 0–0 field are all ties — the profile starts with the season. */}
+      {!preseason && <TeamProfile standings={standings} />}
     </>
   )
 }

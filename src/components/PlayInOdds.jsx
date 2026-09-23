@@ -61,6 +61,18 @@ export default function PlayInOdds({ standings }) {
     )
   }
 
+  // Before the Bucks' first game every team is a .500 coin flip and the model
+  // would just print the field's arithmetic back — wait for real results.
+  if (us.played === 0) {
+    return (
+      <Section kicker="The playoff picture" title="The play-in math">
+        <p className="section-note">
+          The odds model switches on after opening night — it needs real results to work from.
+        </p>
+      </Section>
+    )
+  }
+
   const { top6, playIn, medianWins } = simulate(east)
 
   return (

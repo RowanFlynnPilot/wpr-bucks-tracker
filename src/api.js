@@ -35,11 +35,17 @@ export async function fetchSchedule() {
 const DEAD_STATUSES = new Set(['STATUS_POSTPONED', 'STATUS_CANCELED'])
 
 // Wisconsin readers get the Bucks-market feed; a national window trumps it.
+// National exclusives on streaming (Prime Video, Peacock — 11 Bucks games in
+// 2025-26) arrive as type "Streaming", not "TV", and carry no local feed at
+// all, so they count as national windows too — TV first when a game has both.
 function pickBroadcast(broadcasts, ourSide) {
-  const tv = (broadcasts ?? []).filter((b) => b.type?.shortName === 'TV')
-  const national = tv.find((b) => b.market?.type === 'National')
-  const ours = tv.find((b) => b.market?.type?.toLowerCase() === ourSide)
-  return (national ?? ours)?.media?.shortName ?? null
+  const list = broadcasts ?? []
+  const national = list.filter((b) => b.market?.type === 'National')
+  const pick =
+    national.find((b) => b.type?.shortName === 'TV') ??
+    national.find((b) => b.type?.shortName === 'Streaming') ??
+    list.find((b) => b.type?.shortName === 'TV' && b.market?.type?.toLowerCase() === ourSide)
+  return pick?.media?.shortName ?? null
 }
 
 // postseason comes from which endpoint the event was fetched from — the one
@@ -75,6 +81,11 @@ function normalizeEvent(event, postseason) {
 
 // Both conferences, each sorted by playoff seed. The Season tab renders the East;
 // the West rows feed opponent context in the hero and league-wide scoring ranks.
+// Before opening night ESPN publishes every team at 0–0 with playoffSeed 0 and
+// no "Last Ten Games" stat at all — a real data state, normalized here: seed 0
+// becomes null (unseeded, sorted alphabetically after any seeded teams) and a
+// team that hasn't played gets a 0-0 last ten. Once a team HAS played, a
+// missing last-ten still throws.
 export async function fetchStandings() {
   const data = await getJson(`${SITE}/v2/sports/basketball/nba/standings?season=${SEASON}`)
   const conference = (name, label) => {
@@ -82,6 +93,7 @@ export async function fetchStandings() {
     if (!conf) throw new Error(`${name} missing from standings response`)
     const rows = conf.standings.entries.map((entry) => {
       const stats = Object.fromEntries(entry.stats.map((s) => [s.name, s]))
+      const played = stats.wins.value + stats.losses.value
       return {
         teamId: entry.team.id,
         abbr: entry.team.abbreviation,
@@ -90,14 +102,15 @@ export async function fetchStandings() {
         conference: label,
         wins: stats.wins.value,
         losses: stats.losses.value,
+        played,
         winPct: stats.winPercent.displayValue,
         winPctValue: stats.winPercent.value,
         gamesBehind: stats.gamesBehind.displayValue,
         streak: stats.streak.displayValue,
-        lastTen: stats['Last Ten Games'].displayValue,
+        lastTen: played === 0 ? '0-0' : stats['Last Ten Games'].displayValue,
         pointDiff: stats.differential.displayValue,
         pointDiffValue: stats.differential.value,
-        seed: stats.playoffSeed.value,
+        seed: stats.playoffSeed.value > 0 ? stats.playoffSeed.value : null,
         homeRecord: stats.Home.displayValue,
         roadRecord: stats.Road.displayValue,
         divRecord: stats['vs. Div.'].displayValue,
@@ -107,7 +120,7 @@ export async function fetchStandings() {
         oppgDisplay: stats.avgPointsAgainst.displayValue,
       }
     })
-    rows.sort((a, b) => a.seed - b.seed)
+    rows.sort((a, b) => (a.seed ?? 99) - (b.seed ?? 99) || a.name.localeCompare(b.name))
     return rows
   }
   const east = conference('Eastern Conference', 'East')
@@ -130,20 +143,23 @@ const LEADER_CATEGORIES = [
   'fieldGoalPercentage',
 ]
 
-// The Leaders tab unmounts on every tab switch, so the result is cached at
-// module scope. A rejected load clears the cache so a retry is possible.
-let leadersPromise = null
+// The Leaders tab unmounts on every tab switch, so results are cached at
+// module scope, per season. A rejected load clears its entry so a retry is
+// possible. Before opening night ESPN 404s the new season's leaders, so the
+// tab asks for last season's board instead (it knows the team is 0–0).
+const leadersBySeason = new Map()
 
-export function fetchLeaders() {
-  if (!leadersPromise) {
-    leadersPromise = loadLeaders()
-    leadersPromise.catch(() => { leadersPromise = null })
+export function fetchLeaders(season = SEASON) {
+  if (!leadersBySeason.has(season)) {
+    const p = loadLeaders(season)
+    p.catch(() => leadersBySeason.delete(season))
+    leadersBySeason.set(season, p)
   }
-  return leadersPromise
+  return leadersBySeason.get(season)
 }
 
-async function loadLeaders() {
-  const data = await getJson(`${CORE}/seasons/${SEASON}/types/2/teams/${TEAM_ID}/leaders?limit=50`)
+async function loadLeaders(season) {
+  const data = await getJson(`${CORE}/seasons/${season}/types/2/teams/${TEAM_ID}/leaders?limit=50`)
   const categories = data.categories
     .filter((c) => LEADER_CATEGORIES.includes(c.name))
     .sort((a, b) => LEADER_CATEGORIES.indexOf(a.name) - LEADER_CATEGORIES.indexOf(b.name))

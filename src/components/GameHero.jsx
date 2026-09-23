@@ -31,13 +31,15 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
   const series = played.filter((e) => e.opponent.abbr === featured.opponent.abbr)
   const seriesWins = series.filter((e) => e.won).length
 
+  // A 0–0 record says nothing; before a team's first game it's left off.
+  const record = (row) => (row && row.played > 0 ? `${row.wins}–${row.losses}` : null)
   const bucks = {
     name: 'Bucks', logo: TEAM_LOGO, pts: featured.ourScore,
-    won: featured.final && featured.won, record: `${us.wins}–${us.losses}`,
+    won: featured.final && featured.won, record: record(us),
   }
   const other = {
     name: featured.opponent.name, logo: featured.opponent.logo, pts: featured.theirScore,
-    won: featured.final && !featured.won, record: opp ? `${opp.wins}–${opp.losses}` : null,
+    won: featured.final && !featured.won, record: record(opp),
   }
   const [top, bottom] = featured.home ? [other, bucks] : [bucks, other]
 
@@ -58,7 +60,7 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
           <span className="soft">{periodLabel(featured.period, featured.clock)}</span>
         </>}
         {mode === 'next' && <>
-          <span>Next up</span>
+          <span>{played.length === 0 && !featured.postseason ? 'Opening night' : 'Next up'}</span>
           <span className="soft">Tips in {countdown(featured.date)}</span>
         </>}
         {mode === 'last' && <>
@@ -96,9 +98,10 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
         {mode === 'live' && featured.venue && (
           <div>{featured.venue}{featured.tv ? ` · ${featured.tv}` : ''}</div>
         )}
-        {mode !== 'last' && opp && (
+        {mode !== 'last' && opp && opp.played > 0 && (
           <div>
-            The {opp.name} are {opp.wins}–{opp.losses} (#{opp.seed} in the {opp.conference}) · last 10: {opp.lastTen}
+            The {opp.name} are {opp.wins}–{opp.losses}
+            {opp.seed ? ` (#${opp.seed} in the ${opp.conference})` : ''} · last 10: {opp.lastTen}
           </div>
         )}
         <div>{seriesText(series.length, seriesWins)}</div>

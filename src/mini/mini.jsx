@@ -35,7 +35,7 @@ function MiniScoreboard() {
 
   if (!featured) return <div className="mini-status">No games on the schedule yet.</div>
 
-  const heading = live ? 'Live now' : featured.final ? 'Final' : 'Next up'
+  const heading = live ? 'Live now' : featured.final ? 'Final' : played.length === 0 ? 'Opening night' : 'Next up'
   const bucksPts = featured.ourScore
   const oppPts = featured.theirScore
 

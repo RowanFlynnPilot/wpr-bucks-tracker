@@ -106,11 +106,14 @@ ordinary readers never see placeholders. The link to send:
 
 (Same pattern as the Brewers and Packers trackers.)
 
-## Season rollover (once a year, ~October)
+## Season rollover (once a year, ~September)
 
-When the NBA publishes the new schedule, bump `SEASON` in `src/config.js`
-(ESPN uses the season's **end** year: 2026–27 season = `2027`), push to `main`.
-Everything else follows the config.
+When ESPN publishes the new schedule, bump `SEASON` in `src/config.js`
+(ESPN uses the season's **end** year: 2027–28 season = `2028`), push to `main`.
+The 2026–27 schedule appeared in mid-September. Until opening night the
+tracker runs its preseason views on its own — opening-night countdown, the
+calendar facts, last season's stat leaders — and flips to live standings,
+odds, and the race chart after the first tip. Nothing else to change.
 
 ## What reports to Plausible
 

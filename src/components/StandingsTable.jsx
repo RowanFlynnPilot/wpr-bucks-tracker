@@ -25,7 +25,7 @@ export default function StandingsTable({ rows }) {
             return (
               <tr key={row.teamId} className={classes}>
                 <td className="team-col">
-                  <span className="seed">{row.seed}</span>
+                  <span className="seed">{row.seed ?? '–'}</span>
                   {row.logo && <img src={row.logo} alt="" loading="lazy" />}
                   {row.name}
                 </td>
@@ -40,10 +40,13 @@ export default function StandingsTable({ rows }) {
           })}
         </tbody>
       </table>
-      <div className="legend">
-        <span><span className="swatch solid" />Playoff line (top 6)</span>
-        <span><span className="swatch dashed" />Play-in line (7–10)</span>
-      </div>
+      {/* The lines only exist once teams are seeded. */}
+      {rows.some((r) => r.seed) && (
+        <div className="legend">
+          <span><span className="swatch solid" />Playoff line (top 6)</span>
+          <span><span className="swatch dashed" />Play-in line (7–10)</span>
+        </div>
+      )}
     </>
   )
 }

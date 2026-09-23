@@ -59,10 +59,32 @@ not a data cache; don't let it become one.
 
 ## Season rollover
 
-`SEASON` in `src/config.js` is the season's ESPN end-year (2026 = 2025–26).
+`SEASON` in `src/config.js` is the season's ESPN end-year (2027 = 2026–27).
 ESPN's default (no-param) schedule call returns an empty postseason in the
 offseason, which is why the season is explicit config, not auto-detected.
-Bump to 2027 when the 2026–27 schedule publishes (~October).
+Bump it when ESPN publishes the next schedule (the 2026–27 one appeared in
+mid-September). Between the bump and opening night ESPN serves real-but-empty
+data, and the tracker is built for it — `isPreseason()` in
+`src/scheduleFacts.js` drives the preseason views:
+- Standings: every team 0–0, `playoffSeed` 0 (normalized to `null`, sorted
+  alphabetically), and **no "Last Ten Games" stat at all** (normalized to 0-0
+  only for teams that haven't played — a missing last-ten after games throws).
+  The Season tab hides the table; the minis show the alphabetical East.
+- Leaders: ESPN 404s the new season's leaders, so Season stats shows last
+  season's final board, labeled; TeamProfile ranks (all ties) are hidden.
+- The pulse becomes "The season ahead" (opener, countdown, dates set, home
+  dates, back-to-backs); the race chart and play-in odds wait for results;
+  VsCentral counts meetings; RoadAhead shows dates instead of 0–0 records.
+
+## Headless browsers vs ESPN
+
+Since ~Aug 2026 ESPN's edge refuses headless Chromium (403 without CORS
+headers — pages see "Failed to fetch"); real browsers are fine. A spoofed user
+agent does not get past it. Anything that drives the widget headlessly —
+`scripts/render-digest.mjs`, Playwright screenshot/verification scripts — must
+relay `*.espn.com` requests through Node's `fetch` with `page.route` and add
+`access-control-allow-origin: *` (see the render script). If the deploy's
+`digest-alert` job goes red, this is the first thing to check.
 
 ## Surfaces
 

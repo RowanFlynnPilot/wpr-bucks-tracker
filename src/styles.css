@@ -633,6 +633,7 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 /* ---------- Vs the Central ---------- */
 
 .vs-central { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--cream-deep); }
+.card > .vs-central:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 
 .vs-central-title {
   font-size: 0.7rem;

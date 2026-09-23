@@ -16,16 +16,19 @@ function MiniStandings() {
   if (error) return <div className="mini-status">Standings unavailable — refresh to retry.</div>
   if (!rows) return <div className="mini-status">Loading…</div>
 
-  // Top of the play-in field, plus the Bucks if they sit below it.
+  // Top of the play-in field, plus the Bucks if they sit below it. Before
+  // opening night nobody is seeded, so the whole (alphabetical) East shows.
   // MIL presence is guaranteed by fetchStandings.
   const us = rows.find((r) => r.abbr === TEAM_ABBR)
-  const shown = rows.filter((r) => r.seed <= PLAY_IN_LINE || r.abbr === TEAM_ABBR)
+  const shown = rows.filter((r) => r.seed == null || r.seed <= PLAY_IN_LINE || r.abbr === TEAM_ABBR)
 
   return (
     <a className="mini-card" href={destination()} onClick={() => trackMiniClick('standings')}>
       <div className="mini-kicker">Eastern Conference · Wausau Pilot &amp; Review</div>
       <div className="mini-head">
-        Bucks: {us.wins}–{us.losses}, #{us.seed} in the East
+        {us.seed
+          ? <>Bucks: {us.wins}–{us.losses}, #{us.seed} in the East</>
+          : 'Everyone’s 0–0 — the race starts on opening night'}
       </div>
       <table className="mini-standings">
         <tbody>
@@ -34,7 +37,7 @@ function MiniStandings() {
               row.abbr === TEAM_ABBR ? 'us' : '',
               row.seed === PLAYOFF_LINE ? 'playoff-line' : '',
             ].filter(Boolean).join(' ')}>
-              <td className="seed">{row.seed}</td>
+              <td className="seed">{row.seed ?? '–'}</td>
               <td className="team">
                 {row.logo && <img src={row.logo} alt="" loading="lazy" />}
                 {row.name}

@@ -42,6 +42,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    outputs:
+      digest_fresh: ${{ steps.digest.outputs.fresh }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -63,6 +65,7 @@ jobs:
       # continue-on-error: that would publish a dist with NO digest.png and 404 the
       # newsletter image.
       - name: Render digest email image
+        id: digest
         run: |
           npm run preview -- --port 4173 --host 127.0.0.1 &
           for i in $(seq 1 30); do
@@ -70,12 +73,14 @@ jobs:
             sleep 1
           done
           render() { node scripts/render-digest.mjs http://127.0.0.1:4173/wpr-bucks-tracker/mini-digest.html dist/digest.png; }
-          render || { echo "Render failed — retrying in 10s"; sleep 10; render; } \
-                 || { echo "Render failed — retrying in 30s"; sleep 30; render; } \
-                 || {
+          if render || { echo "Render failed — retrying in 10s"; sleep 10; render; } \
+                    || { echo "Render failed — retrying in 30s"; sleep 30; render; }; then
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+          else
             echo "::warning::Digest render failed 3x — shipping the last published digest.png instead"
             curl -sf -o dist/digest.png https://rowanflynnpilot.github.io/wpr-bucks-tracker/digest.png
-          }
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -92,3 +97,16 @@ jobs:
       # stalls, re-run the deploy job — the twice-daily schedule also self-heals it.
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # The site still deploys when the digest render fails (the last image ships), but
+  # the RUN goes red so GitHub emails the repo owner. A yellow warning annotation
+  # alone let every render from Aug 4 to Sep 23, 2026 fail unnoticed — the
+  # newsletter image said "Updated August 4" for seven weeks.
+  digest-alert:
+    needs: build
+    if: needs.build.outputs.digest_fresh == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "::error::The newsletter digest.png could not be re-rendered — readers are seeing the previous image. Check the 'Render digest email image' step log."
+          exit 1

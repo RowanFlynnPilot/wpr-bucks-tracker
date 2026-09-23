@@ -1,4 +1,6 @@
-import { PLAYOFF_LINE, PLAY_IN_LINE, TEAM_ABBR, VENUE } from '../config.js'
+import { GAMES_IN_SEASON, PLAYOFF_LINE, PLAY_IN_LINE, TEAM_ABBR, VENUE } from '../config.js'
+import { gameTime } from '../format.js'
+import { scheduleFacts } from '../scheduleFacts.js'
 import Section from './Section.jsx'
 
 // A few plain sentences generated from the same data the charts use — the
@@ -46,8 +48,23 @@ export default function Storylines({ schedule, standings }) {
     }
     lines.push(<>Next season's schedule lands here when the NBA publishes it — opening night comes late October.</>)
   } else if (played.length === 0) {
+    // Preseason: what the calendar says, since there are no results yet.
+    const facts = scheduleFacts(schedule.events)
+    const o = facts.opener
     lines.push(
-      <>A clean slate: the {schedule.seasonLabel} season is <strong>{upcoming.length} games</strong> long, and the line starts on opening night.</>
+      <>A clean slate: the {schedule.seasonLabel} season is <strong>{GAMES_IN_SEASON} games</strong> long, and the race line starts on opening night.</>
+    )
+    if (o) {
+      const day = o.date.toLocaleDateString('en-US', { timeZone: 'America/Chicago', weekday: 'long', month: 'short', day: 'numeric' })
+      lines.push(
+        <>It tips off <strong>{day}</strong> at {gameTime(o.date)} CT {o.home ? `against the ${o.opponent.name} at ${VENUE}` : `on the road against the ${o.opponent.name}`}{o.tv ? ` (${o.tv})` : ''}.</>
+      )
+    }
+    lines.push(
+      <>
+        <strong>{facts.home}</strong> of the {facts.scheduled} dates set so far are at {VENUE}, with <strong>{facts.backToBacks} back-to-backs</strong> on the calendar.
+        {facts.toBeSet > 0 && ` The last ${WORDS[facts.toBeSet] ?? facts.toBeSet} get set after NBA Cup group play.`}
+      </>
     )
   } else {
     lines.push(
@@ -70,7 +87,7 @@ export default function Storylines({ schedule, standings }) {
   if (lines.length === 0) return null
 
   return (
-    <Section kicker="The storylines" title="Where the story stands">
+    <Section kicker="The storylines" title={played.length === 0 ? 'Where the story starts' : 'Where the story stands'}>
       <ul className="story-list">
         {lines.map((line, i) => <li key={i}>{line}</li>)}
       </ul>
