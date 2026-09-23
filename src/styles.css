@@ -1311,6 +1311,9 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 .status-block.error { color: var(--loss); }
 
 @media (max-width: 560px) {
+  /* Three ~110px columns at phone width: keep "29 days" / "13-28" inside them. */
+  .pulse .stat { padding: 2px 10px; }
+  .pulse .stat .value { font-size: 1.2rem; }
   .banner { padding: 18px 16px 16px; }
   .banner-title { font-size: 1.5rem; }
   .banner-logo, .banner-swatch { width: 54px; height: 54px; }
