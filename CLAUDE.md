@@ -32,6 +32,10 @@ not a data cache; don't let it become one.
   carry venue, the Bucks-market/national TV feed, NBA Cup notes, and live
   period/clock. An empty postseason array is data (missed the playoffs), not an
   error. Liveness is `status.type.state === 'in'` (halftime is still "in").
+  The season label comes from `requestedSeason.displayName`, never the
+  top-level `season` block — that one is the league's *current* season and
+  flips every September, mislabeling the old season's data until `SEASON` is
+  bumped.
 - `fetchStandings()` — **both** conferences `{ east, west }`, seed-sorted, with
   home/road/division splits and PPG for/against. East renders the table; the
   league-wide rows feed hero opponent context, TeamProfile ranks, RoadAhead.
@@ -92,16 +96,24 @@ render throws only; feed failures are handled at the fetch sites.
 
 ## Sponsorship & product surfaces
 
-`SPONSOR` in config: `null` renders the "sponsorship available" house card in
-both slots (`top` in App, `season` mid-Season-tab) — unsold inventory should be
-visible, not hidden. `WATCH_VENUES` (per-listing bar/restaurant cards, "Catch
-the games this week" atop the Schedule tab) renders nothing while empty —
-readers never see an empty shelf. Clicks track per-slot. **Sales demo mode:**
-`?demo` fills open slots with placeholders at module load in config.js (sold
-slots never overridden — the exports are `let` for exactly this reason; same
-pattern as the Brewers/Packers). `docs/HANDOFF.md` is the newsroom runbook;
-`docs/SPONSOR_PITCH.md` the sales skeleton. Keep both current when surfaces
-change.
+`SPONSOR` in config is the title sponsor (SOLD: Ho-Chunk Gaming Wittenberg,
+2026–27), rendered in both title slots (`top` in the banner, `season`
+mid-Season-tab). A sold lockup is **always a white card** — sponsor art is
+drawn for white — with the tagline split at the em-dash, a Directions chip
+(role="button" span inside the card link; nested anchors are invalid), a
+UTM-tagged `rel="sponsored"` click-through, and `SPONSOR_DISCLAIMER` in the
+footer while a gaming brand holds the title. **Sponsor art is self-hosted from
+`public/`** — WPR's media CDN migration (Sept 2026) 404'd hot-linked uploads on
+the Brewers tracker. `null` renders the "sponsorship available" house card
+instead — unsold inventory should be visible, not hidden. `WATCH_VENUES`
+(per-listing bar/restaurant cards, "Catch the games this week" atop the
+Schedule tab) renders nothing while empty — readers never see an empty shelf.
+Clicks track per-slot. **Sales demo mode:** `?demo` (`DEMO_MODE`) fills open
+slots with placeholders at module load in config.js and shows a preview ribbon
+(sold slots never overridden — the exports are `let` for exactly this reason;
+same pattern as the Brewers/Packers). `docs/HANDOFF.md` is the newsroom
+runbook; `docs/SPONSOR_PITCH.md` the sales skeleton. Keep both current when
+surfaces change.
 
 ## Design system
 

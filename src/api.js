@@ -26,7 +26,10 @@ export async function fetchSchedule() {
   ]
     .filter((e) => !e.dead) // postponed/canceled shells aren't games
     .sort((a, b) => a.date - b.date)
-  return { seasonLabel: regular.season.displayName, events }
+  // `requestedSeason` is the season we asked for. The top-level `season` block
+  // is the league's CURRENT season and flips to next year every September —
+  // it mislabeled last season's data as "2026-27" until the rollover.
+  return { seasonLabel: regular.requestedSeason.displayName, events }
 }
 
 const DEAD_STATUSES = new Set(['STATUS_POSTPONED', 'STATUS_CANCELED'])

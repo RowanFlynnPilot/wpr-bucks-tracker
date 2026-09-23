@@ -1026,6 +1026,8 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 }
 
 .footer a { color: var(--wpr-teal); }
+.footer-lines { display: flex; flex-direction: column; gap: 3px; }
+.footer .disclaimer { color: var(--ink); }
 
 /* ---------- Sponsor band ---------- */
 
@@ -1067,11 +1069,56 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
   color: var(--wpr-teal);
 }
 
-.sb-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 5px; }
-.sb-row img { display: block; height: 40px; object-fit: contain; }
+.sb-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+.sb-row img { display: block; height: 50px; object-fit: contain; }
 .sb-name { font-family: var(--font-display); font-size: 1rem; font-weight: 600; }
 .sb-note, .sb-tagline { font-size: 0.78rem; color: var(--ink-soft); }
 .sb-cta { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--team); white-space: nowrap; }
+
+/* Sold lockup: always a white card (sponsor art is drawn for white), even on the
+   green banner — the WPR house convention, top-edge accent, shadow for lift. */
+.sponsor-band.sold {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--team);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: var(--ink);
+}
+
+.banner .sponsor-band.sold { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); }
+.sponsor-band.sold .sb-kicker { color: #96703f; }
+.sponsor-band.sold:hover .sb-cta { text-decoration: underline; }
+
+.sponsor-band.sold .sb-tagline { flex: 1 1 200px; line-height: 1.35; }
+.sb-offer { font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; color: var(--ink); }
+.sb-place { font-size: 0.74rem; color: var(--ink-soft); margin-top: 1px; }
+
+.sb-directions {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--team);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sb-directions:hover, .sb-directions:focus-visible { background: var(--cream); }
+.sb-directions:focus-visible { outline: 2px solid var(--wpr-teal); outline-offset: 1px; }
+
+/* Demo-mode ribbon: a forwarded sales link explains itself. */
+.demo-ribbon {
+  margin: 0 -16px;
+  padding: 7px 16px;
+  background: var(--cream-deep);
+  color: var(--ink);
+  font-size: 0.74rem;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.demo-ribbon a { color: var(--team); font-weight: 700; }
 
 /* ---------- Where to watch (venue listings) ---------- */
 

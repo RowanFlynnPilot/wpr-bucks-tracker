@@ -17,17 +17,18 @@ front of them every time — and your name rides along.
 
 ## The inventory
 
-| Placement | Where | What it looks like |
+| Placement | Where | Status |
 |---|---|---|
-| **Title sponsorship — banner** | In the masthead, every tab, every visit | "Presented by NAME" lockup — logo, tagline, click-through |
-| **Title sponsorship — season band** | Mid-page on the default tab | Same lockup, second impression |
-| **Where-to-Watch listings** | Top of the Schedule tab, sold *per venue* | A bar/restaurant card: photos, amenity chips, game-day specials, tracked link |
+| **Title sponsorship — banner** | In the masthead, every tab, every visit | **SOLD** — Ho-Chunk Gaming Wittenberg (2026–27) |
+| **Title sponsorship — season band** | Mid-page on the default tab | **SOLD** — same sponsor, second impression |
+| **Where-to-Watch listings** | Top of the Schedule tab, sold *per venue* | **OPEN** — a bar/restaurant card: photos, amenity chips, game-day specials, tracked link |
 | **Newsletter digest** | WPR email sends (image refreshed twice daily) | Adjacent placement negotiable with the newsroom |
 
 The two title slots are one sponsor, sold together — category exclusivity comes
-free with that. Where-to-Watch is separate, local, per-listing inventory made
-for Wausau bars and restaurants. Clicks are tracked per-slot in Plausible;
-sponsors get the numbers.
+with that (Ho-Chunk holds it through the 2026–27 season). Where-to-Watch is
+separate, local, per-listing inventory made for Wausau bars and restaurants
+and is still open. Clicks are tracked per-slot in Plausible; sponsors get the
+numbers.
 
 **Show, don't tell:** the live demo fills every open slot with placeholders —
 <https://rowanflynnpilot.github.io/wpr-bucks-tracker/?demo&tab=schedule>

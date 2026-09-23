@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { HEIGHT_MESSAGE_TYPE, TEAM_LOGO, USE_TEAM_LOGO } from './config.js'
+import {
+  DEMO_MODE, HEIGHT_MESSAGE_TYPE, SPONSOR_DISCLAIMER, SPONSOR_INQUIRY,
+  TEAM_LOGO, USE_TEAM_LOGO,
+} from './config.js'
 import SponsorBand from './components/SponsorBand.jsx'
 import BookmarkButton from './components/BookmarkButton.jsx'
 import { fetchSchedule, fetchStandings } from './api.js'
@@ -141,6 +144,13 @@ export default function App() {
 
   return (
     <div>
+      {DEMO_MODE && (
+        <div className="demo-ribbon">
+          Sales preview — placeholders mark open placements ·{' '}
+          <a href={`mailto:${SPONSOR_INQUIRY}?subject=Bucks%20tracker%20sponsorship`}>{SPONSOR_INQUIRY}</a>
+        </div>
+      )}
+
       <div className="dateline">
         <span>{today}</span>
         <span className="place">Wausau, Wisconsin</span>
@@ -203,10 +213,14 @@ export default function App() {
       </ErrorBoundary>
 
       <footer className="footer">
-        <span>
-          Data: ESPN · Not affiliated with or endorsed by the Milwaukee Bucks or the NBA.
-          {' '}<a href="https://wausaupilotandreview.com/" target="_blank" rel="noopener noreferrer">Wausau Pilot &amp; Review</a>
-        </span>
+        <div className="footer-lines">
+          <span>Data: ESPN · Not affiliated with or endorsed by the Milwaukee Bucks or the NBA.</span>
+          {SPONSOR_DISCLAIMER && <span className="disclaimer">{SPONSOR_DISCLAIMER}</span>}
+          <span>
+            <a href="https://wausaupilotandreview.com/" target="_blank" rel="noopener noreferrer">Wausau Pilot &amp; Review</a>
+            {' '}· 715-301-5539
+          </span>
+        </div>
         <button className="copy-link" onClick={copyLink}>Copy link</button>
       </footer>
     </div>

@@ -27,13 +27,31 @@ export const TEAM_CREAM = '#EEE1C6'
 export const USE_TEAM_LOGO = true
 export const TEAM_LOGO = 'https://a.espncdn.com/i/teamlogos/nba/500/mil.png'
 
-// Sponsor lockup. null = unsold, and the slots show a tasteful "sponsorship
-// available" house card instead of an empty hole — inventory the sales side
-// can point at. Fill in to go paid:
-// { name: 'Culver's of Wausau', url: 'https://…', logo: 'https://…', tagline: '…' }
-// (`let`, not `const`: sales demo mode at the bottom of this file fills open slots.)
-export let SPONSOR = null
+// Title sponsor — both title slots (banner + mid-Season-tab) are one sponsor.
+// null = unsold, and the slots show a "sponsorship available" house card
+// instead of an empty hole — inventory the sales side can point at.
+// Shape: { name, logo, url, tagline, address? }. Sponsor art is SELF-HOSTED
+// from public/ — WPR's media library moved to a CDN in Sept 2026 and hot-linked
+// uploads 404'd on the Brewers tracker. Copy the file in; note the source.
+// The tagline splits at the em-dash (offer large, place small). `address` powers
+// the Directions chip. (`let`, not `const`: demo mode below fills OPEN slots.)
+export let SPONSOR = {
+  name: 'Ho-Chunk Gaming Wittenberg',
+  // Source: cdn.wausaupilotandreview.com/wp-content/uploads/2025/07/HCG-W-Logo-1-336x115.jpg
+  logo: `${import.meta.env.BASE_URL}hcg-wittenberg-logo.jpg`,
+  url: 'https://www.ho-chunkgaming.com/wittenberg/?utm_source=wausaupilotandreview&utm_medium=widget&utm_campaign=bucks_tracker',
+  tagline: '800+ slots · Hotel · Dining — Wittenberg, WI',
+  address: 'N7198 US-45, Wittenberg, WI 54499',
+}
 export const SPONSOR_INQUIRY = 'weber.chris@wausaupilotandreview.com'
+
+// Shown in the footer while a gaming brand is the title sponsor. Set to '' to hide.
+export const SPONSOR_DISCLAIMER =
+  'Must be 21+. If you or someone you know has a gambling problem, call 1-800-GAMBLER.'
+
+// Sales demo mode flag — see the block at the bottom of this file.
+export const DEMO_MODE =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')
 
 // Where to watch this week: bar/restaurant listings, sold per listing. Each entry:
 //   { name: 'The Bar', tagline: '…', images: ['hero.jpg', 'thumb1.jpg', …],
@@ -65,9 +83,11 @@ export const HEIGHT_MESSAGE_TYPE = 'wpr-bucks-height'
 // SALES DEMO MODE — append ?demo to any page URL and every OPEN slot fills with
 // a "Your brand here" placeholder, so WPR sales can show a prospect exactly what
 // their sponsorship looks like on the live page: real scores, their name on the
-// marquee. Sold slots are never overridden, ordinary readers never see it (no
-// ?demo, no placeholders). Same pattern as the Brewers and Packers trackers.
-if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('demo')) {
+// marquee. Sold slots (the Ho-Chunk title) are never overridden, ordinary
+// readers never see it (no ?demo, no placeholders), and App shows a preview
+// ribbon so a forwarded link explains itself. Same pattern as the Brewers and
+// Packers trackers. This looks like dead code and it is not.
+if (DEMO_MODE) {
   SPONSOR = SPONSOR || {
     name: 'Your Brand Here',
     logo: null,

@@ -133,8 +133,10 @@ Everything tweakable lives in `src/config.js`:
 
 - **SEASON** — ESPN uses the season's *end* year; bump `2026 → 2027` when the
   2026–27 schedule publishes (October).
-- **SPONSOR / SPONSOR_INQUIRY** — `null` shows the "sponsorship available"
-  house card in both slots; fill the object to go paid (clicks tracked per slot).
+- **SPONSOR / SPONSOR_INQUIRY / SPONSOR_DISCLAIMER** — the title sponsor
+  (currently Ho-Chunk Gaming Wittenberg; logo self-hosted in `public/`, never
+  hot-linked). `null` shows the "sponsorship available" house card in both
+  slots instead. The disclaimer rides in the footer for gaming sponsors.
 - **WATCH_VENUES** — per-listing bar/restaurant cards in "Catch the games this
   week" (Schedule tab). Empty = section hidden. Append `?demo` to any URL for
   sales demo mode: open slots fill with "Your Brand Here" placeholders (sold

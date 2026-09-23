@@ -39,24 +39,38 @@ The image re-bakes twice daily (before the morning and afternoon sends) via the
 deploy workflow. If it ever looks stale, run the **Deploy to GitHub Pages** action
 manually (Actions tab → Run workflow) — that re-renders it.
 
-## Selling the sponsorship
+## The title sponsorship (SOLD — Ho-Chunk Gaming Wittenberg)
 
-`src/config.js` → `SPONSOR`. While `null`, the two sponsor slots show a
-"Sponsorship available" house card pointing at `SPONSOR_INQUIRY`
-(weber.chris@wausaupilotandreview.com). To go paid:
+`src/config.js` → `SPONSOR` holds the title sponsor; both title slots (the
+masthead banner and the mid-page band on the Season tab) render the same
+lockup — logo on a white card, "800+ slots · Hotel · Dining" over "Wittenberg,
+WI", a Directions chip (Apple Maps on iPhones/Macs, Google Maps elsewhere), and
+a UTM-tagged click-through. `SPONSOR_DISCLAIMER` puts the 21+ / 1-800-GAMBLER
+line in the footer; it travels with a gaming sponsor and comes out (set it to
+`''`) if the title ever goes to a non-gaming brand.
+
+To change sponsors, edit the object:
 
 ```js
-export const SPONSOR = {
+export let SPONSOR = {
   name: 'Sponsor Name',
-  url: 'https://sponsor.example.com',       // click-through (tracked per slot)
-  logo: 'https://…/logo.png',               // optional — name renders if absent
-  tagline: 'One line about the sponsor',    // optional
+  logo: `${import.meta.env.BASE_URL}sponsor-logo.png`,  // a file in public/ — see below
+  url: 'https://sponsor.example.com/?utm_source=wausaupilotandreview&utm_medium=widget&utm_campaign=bucks_tracker',
+  tagline: 'What they offer — Where they are',           // splits at the em-dash
+  address: '123 Main St, Wausau, WI 54401',              // optional — powers Directions
 }
 ```
 
+**Logos live in `public/`, never hot-linked.** WPR's media library moved to a
+CDN in September 2026 and hot-linked upload URLs went dead on the Brewers
+tracker mid-season. Drop the file in `public/`, reference it as above, and
+note the original URL in a comment for provenance.
+
 Push to `main`; the deploy is automatic. Clicks report to Plausible as
-`Sponsor Click` with the slot (`top` / `season`). **Before selling:** see the
-trademark note in `README.md` — consider `USE_TEAM_LOGO = false` on paid surfaces.
+`Sponsor Click` with the slot (`top` / `season`) and `action: directions` for
+the maps chip. **Trademark:** see the note in `README.md` — the sponsor sits
+beside the Bucks logo in the banner; `USE_TEAM_LOGO = false` swaps in a
+colors-only mark if that ever needs to change.
 
 ## Selling Where-to-Watch listings (bars & restaurants)
 
