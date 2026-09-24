@@ -1,19 +1,21 @@
-import { StrictMode, useEffect, useState } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { PLAYOFF_LINE, PLAY_IN_LINE, TEAM_ABBR } from '../config.js'
 import { fetchStandings } from '../api.js'
+import { useRefreshingData } from '../useRefreshingData.js'
 import { destination, trackMiniClick } from './mini-shared.js'
 import './mini.css'
 
+// Standings move at most once a game, so this card refreshes every 10 minutes
+// (and on tab return) rather than on the scoreboard's live cadence.
+const loadEast = () => fetchStandings().then((s) => s.east)
+const never = () => false
+const STANDINGS_REFRESH_MS = 600_000
+
 function MiniStandings() {
-  const [rows, setRows] = useState(null)
-  const [error, setError] = useState(null)
+  const { data: rows, error } = useRefreshingData(loadEast, never, STANDINGS_REFRESH_MS)
 
-  useEffect(() => {
-    fetchStandings().then((s) => setRows(s.east)).catch((err) => setError(err.message))
-  }, [])
-
-  if (error) return <div className="mini-status">Standings unavailable — refresh to retry.</div>
+  if (error && !rows) return <div className="mini-status">Standings unavailable — retrying shortly.</div>
   if (!rows) return <div className="mini-status">Loading…</div>
 
   // Top of the play-in field, plus the Bucks if they sit below it. Before

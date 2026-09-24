@@ -8,7 +8,7 @@ Plausible once the season is running — fill before sending.*
 **The Bucks, by the numbers** — Wausau Pilot & Review's live Milwaukee Bucks
 hub: live scores on game nights, the Eastern Conference race, the schedule with
 TV listings, season stat leaders, and a film room that replays every game
-(win-probability chart, shot chart, the big runs). It lives on
+(the score flow, box score, shot chart, the big runs). It lives on
 wausaupilotandreview.com and updates itself from ESPN's public data all season —
 82 games plus the postseason, October through (hopefully) June.
 

@@ -23,15 +23,32 @@ not a data cache; don't let it become one.
 - Surgical, single-responsibility changes. Fix root causes, not symptoms.
 - No overengineering. If ESPN's response shape changes, fix the normalizer —
   don't add defensive layers around it.
-- Charts are hand-rolled SVG (RaceChart, GameFlow, ShotChart). No chart library.
+- Charts are hand-rolled SVG (RaceChart, ScoreFlow, ShotChart). No chart library.
+  Line charts draw at their container's real pixel width (`useChartWidth`) so
+  text stays 11px on phones — never a fixed wide viewBox scaled down.
 
 ## Data layer (`src/api.js`, plus `src/wpr.js`)
 
-- `fetchSchedule()` — regular season (type 2) + postseason (type 3), merged,
-  date-sorted. Postponed/canceled events are filtered at this boundary. Events
-  carry venue, the Bucks-market/national TV feed, NBA Cup notes, and live
-  period/clock. An empty postseason array is data (missed the playoffs), not an
-  error. Liveness is `status.type.state === 'in'` (halftime is still "in").
+- `fetchSchedule()` — regular season (type 2), **Play-In Tournament (type 5 —
+  its own season type)** and playoffs (type 3), merged, date-sorted. Each event
+  has a `stage`: `regular` | `cupFinal` | `playIn` | `playoffs` (the NBA Cup
+  championship arrives in type 2 but carries competition type
+  `commissioners-cup` and does NOT count in the standings). **Only `regular`
+  games count toward the record** — the race chart, recap records/streaks,
+  season series, VsCentral and calendar facts all filter on it; playoff games
+  carry series context instead. `neutral` marks Cup games in Las Vegas (a
+  designated "home" there is not a Fiserv Forum date). Postponed/canceled —
+  anything ESPN closes out without completing — is filtered at this boundary.
+  Events carry venue, the Bucks-market/national TV feed (national streaming
+  exclusives count), NBA Cup notes, live period/clock and `detail` (ESPN's
+  short detail, which names breaks: "Halftime", "End of 3rd" — `liveLabel()`).
+  Empty play-in/playoff arrays are data, not errors. Liveness is
+  `status.type.state === 'in'` (halftime is still "in").
+  **Live scores come from the league scoreboard, not the schedule:** ESPN's team
+  schedule drops a game's score while the clock runs (seen on live WNBA/MLB
+  games from the same API), so `withLiveScores` overlays score + status from
+  `scoreboard?dates=<US Eastern date>` for any live event, and throws if the
+  live game is missing there.
   The season label comes from `requestedSeason.displayName`, never the
   top-level `season` block — that one is the league's *current* season and
   flips every September, mislabeling the old season's data until `SEASON` is
@@ -92,7 +109,11 @@ relay `*.espn.com` requests through Node's `fetch` with `page.route` and add
   / Film room (`film`). Tab **ids** are stable — they key `?tab=` deep links and
   Plausible events; labels can change. `?game=<event-id>` deep-links a specific
   film-room box score (invalid ids fall back to the latest final). Posts
-  `wpr-bucks-height` to the parent on every layout change (ResizeObserver).
+  `wpr-bucks-height` to the parent on every layout change (ResizeObserver on
+  `body`), and the value must be the CONTENT height
+  (`body.getBoundingClientRect().height`): inside an iframe,
+  `documentElement.scrollHeight` never drops below the iframe's own height, so
+  it only ever ratchets up and leaves blank bands on the WPR page.
 - `src/recaps.js` — 1–2 sentence game recaps generated from the schedule alone
   (margin buckets × seeded template banks; hash of the game id keeps each
   game's wording stable across renders). Every claim must stay derivable from
@@ -107,14 +128,22 @@ relay `*.espn.com` requests through Node's `fetch` with `page.route` and add
 
 ## Refresh & live behavior (index + minis)
 
-Always-on refresh: every 120s at rest, 60s while any event is live, plus a
-refetch on `visibilitychange` — so a page opened before tip-off flips to Live
-without a reload. Deliberate exception to fail-loud: once data has rendered, a
-**failed refresh** keeps the last good data on screen and logs to console —
-replacing a working scoreboard with an error over one transient blip mid-game
-is worse than briefly stale numbers. The **initial** load still fails loud with
-a visible error (and self-retries on the next tick). `ErrorBoundary` catches
-render throws only; feed failures are handled at the fetch sites.
+One hook, `useRefreshingData(loader, isLive, restMs)`, drives the tracker and
+both live minis (the digest is a one-shot render). Always-on refresh: every
+120s at rest (mini standings: 10 min), 60s while any event is live, plus a
+refetch on `visibilitychange` — so a page (or sidebar card) opened before
+tip-off flips to Live without a reload. Responses are sequence-numbered so a
+tab-return load racing a timer load can't land older data over newer.
+Deliberate exception to fail-loud: once data has rendered, a **failed refresh**
+keeps the last good data on screen and logs to console — replacing a working
+scoreboard with an error over one transient blip mid-game is worse than
+briefly stale numbers. The **initial** load still fails loud with a visible
+error (and self-retries on the next tick). `ErrorBoundary` catches render
+throws only; feed failures are handled at the fetch sites.
+
+With nothing left on the schedule, `postseasonState()` decides between "season
+over" and "the next play-in game / playoff round isn't posted yet" (the NBA
+sets them a day or two out) — never assume no upcoming games means done.
 
 ## Sponsorship & product surfaces
 

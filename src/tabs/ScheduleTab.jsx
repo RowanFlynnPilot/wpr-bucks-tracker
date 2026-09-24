@@ -19,7 +19,7 @@ export default function ScheduleTab({ schedule, onOpenGame }) {
   const upcoming = schedule.events.filter((e) => !e.final)
   const recent = showAll ? [...played].reverse() : [...played].reverse().slice(0, INITIAL_RESULTS)
   const ahead = showAllUpcoming ? upcoming : upcoming.slice(0, INITIAL_UPCOMING)
-  const nextHome = upcoming.find((g) => g.home && !g.live)
+  const nextHome = upcoming.find((g) => g.home && !g.neutral && !g.live)
   const recaps = buildRecapContext(schedule.events)
 
   return (

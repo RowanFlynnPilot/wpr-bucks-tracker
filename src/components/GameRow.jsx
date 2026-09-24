@@ -1,4 +1,4 @@
-import { gameDate, gameTime, periodLabel } from '../format.js'
+import { gameDate, gameTime, liveLabel } from '../format.js'
 
 // One schedule line. `detail` adds a venue/TV line (used where there's room);
 // `recap` adds the generated one-liner under a final. When `onOpen` is set and
@@ -14,7 +14,7 @@ export default function GameRow({ game, detail = false, recap = null, onOpen = n
         <span className="vsat">{game.home ? 'vs' : 'at'}</span>
         {game.opponent.logo && <img src={game.opponent.logo} alt="" loading="lazy" />}
         {game.opponent.name}
-        {game.postseason && <span className="postseason-tag">Playoffs</span>}
+        {game.tag && <span className="postseason-tag">{game.tag}</span>}
         {game.cup && <span className="cup-tag">NBA Cup</span>}
       </div>
       {game.final ? (
@@ -24,7 +24,7 @@ export default function GameRow({ game, detail = false, recap = null, onOpen = n
         </div>
       ) : (
         <div className="time">
-          {game.live ? `Live · ${periodLabel(game.period, game.clock)}` : gameTime(game.date)}
+          {game.live ? `Live · ${liveLabel(game)}` : gameTime(game.date)}
         </div>
       )}
       {detail && (game.venue || game.tv) && (

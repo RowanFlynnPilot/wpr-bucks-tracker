@@ -16,7 +16,9 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: transparent; font-family: var(--font-body); color: var(--ink); }
 
-a.mini-card {
+/* Class-only selector: the digest card is a <div> (it's baked into an email
+   image), and it needs the same frame as the linked cards. */
+.mini-card {
   display: block;
   background: var(--card);
   border: 1px solid var(--line);

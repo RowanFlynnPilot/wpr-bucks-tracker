@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { TEAM_ABBR, TEAM_LOGO } from '../config.js'
-import { countdown, gameDate, gameTime, periodLabel, track } from '../format.js'
+import { countdown, gameDate, gameTime, liveLabel, track } from '../format.js'
 import { buildRecapContext, recapFor } from '../recaps.js'
+import { postseasonState } from '../scheduleFacts.js'
 
 // The featured game — live > next > last final, the same pick as the mini scoreboard.
 // The emotional center of the Season tab: score or countdown, venue and TV, where the
@@ -28,8 +29,14 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
   const us = league.find((r) => r.abbr === TEAM_ABBR)
   const opp = league.find((r) => r.abbr === featured.opponent.abbr) ?? null
 
-  const series = played.filter((e) => e.opponent.abbr === featured.opponent.abbr)
+  // In the playoffs it's the best-of-seven; otherwise the regular-season
+  // meetings only (a play-in, Cup final or playoff game isn't part of it).
+  const playoffGame = featured.stage === 'playoffs'
+  const series = played.filter((e) =>
+    e.opponent.abbr === featured.opponent.abbr && e.stage === (playoffGame ? 'playoffs' : 'regular'))
   const seriesWins = series.filter((e) => e.won).length
+  const recaps = buildRecapContext(events)
+  const over = !nextGame && !liveGame && postseasonState(events, us.seed) === 'over'
 
   // A 0–0 record says nothing; before a team's first game it's left off.
   const record = (row) => (row && row.played > 0 ? `${row.wins}–${row.losses}` : null)
@@ -57,17 +64,17 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
         {mode === 'live' && <>
           <span className="live-dot" aria-hidden="true" />
           <span className="live-label">Live</span>
-          <span className="soft">{periodLabel(featured.period, featured.clock)}</span>
+          <span className="soft">{liveLabel(featured)}</span>
         </>}
         {mode === 'next' && <>
-          <span>{played.length === 0 && !featured.postseason ? 'Opening night' : 'Next up'}</span>
+          <span>{played.length === 0 && featured.stage === 'regular' ? 'Opening night' : 'Next up'}</span>
           <span className="soft">Tips in {countdown(featured.date)}</span>
         </>}
         {mode === 'last' && <>
           <span>Final</span>
           <span className="soft">{gameDate(featured.date)}</span>
         </>}
-        {featured.postseason && <span className="postseason-tag">Playoffs</span>}
+        {featured.tag && <span className="postseason-tag">{featured.tag}</span>}
         {featured.cup && <span className="cup-tag">NBA Cup</span>}
       </div>
 
@@ -87,7 +94,7 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
 
       <div className="hero-context">
         {mode === 'last' && (
-          <div className="hero-recap">{recapFor(featured, buildRecapContext(events))}</div>
+          <div className="hero-recap">{recapFor(featured, recaps)}</div>
         )}
         {mode === 'next' && (
           <div>
@@ -104,16 +111,25 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
             {opp.seed ? ` (#${opp.seed} in the ${opp.conference})` : ''} · last 10: {opp.lastTen}
           </div>
         )}
-        <div>{seriesText(series.length, seriesWins)}</div>
-        {mode === 'last' && !nextGame && (
-          <div>Season complete — next season's schedule lands here when the NBA publishes it.</div>
+        <div>{seriesText(series.length, seriesWins, playoffGame)}</div>
+        {/* Game-day mornings: the next game leads, last night's result rides along. */}
+        {mode === 'next' && lastGame && (
+          <div className="hero-last">Last time out: {recapFor(lastGame, recaps)}</div>
         )}
+        {mode === 'last' && (over
+          ? <div>Season complete — next season's schedule lands here when the NBA publishes it.</div>
+          : <div>The next game lands here as soon as the NBA sets it.</div>)}
       </div>
 
       <div className="hero-actions">
         {mode === 'last' && onOpenGame && (
           <button className="copy-link" onClick={() => onOpenGame(featured.id)}>
             Box score <span aria-hidden="true">→</span>
+          </button>
+        )}
+        {mode === 'next' && lastGame && onOpenGame && (
+          <button className="copy-link" onClick={() => onOpenGame(lastGame.id)}>
+            Last game's box score <span aria-hidden="true">→</span>
           </button>
         )}
         <button className="copy-link" onClick={share}>Share this game</button>
@@ -152,12 +168,14 @@ function LockupTeam({ team }) {
   )
 }
 
-function seriesText(playedCount, wins) {
-  if (playedCount === 0) return 'First meeting of the season'
+function seriesText(playedCount, wins, playoffs) {
+  const kind = playoffs ? 'series' : 'season series'
+  if (playedCount === 0) return playoffs ? 'Game 1 of the series' : 'First meeting of the season'
   const losses = playedCount - wins
   const score = `${wins}–${losses}`
-  if (wins === losses) return `Season series tied ${score}`
-  return wins > losses ? `Bucks lead the season series ${score}` : `Bucks trail the season series ${score}`
+  if (playoffs && (wins === 4 || losses === 4)) return `Bucks ${wins === 4 ? 'won' : 'lost'} the series ${score}`
+  if (wins === losses) return `${playoffs ? 'Series' : 'Season series'} tied ${score}`
+  return wins > losses ? `Bucks lead the ${kind} ${score}` : `Bucks trail the ${kind} ${score}`
 }
 
 // Client-generated calendar file; the reminder happens in the reader's own calendar app.

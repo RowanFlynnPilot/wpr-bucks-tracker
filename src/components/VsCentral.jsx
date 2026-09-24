@@ -1,9 +1,10 @@
 import { CENTRAL_RIVALS } from '../config.js'
 
-// Season series against the Central Division, straight off the schedule.
+// Season series against the Central Division, straight off the schedule —
+// regular-season meetings only (a playoff series is its own story).
 export default function VsCentral({ schedule }) {
   const rivals = CENTRAL_RIVALS.map((abbr) => {
-    const games = schedule.events.filter((e) => e.opponent.abbr === abbr)
+    const games = schedule.events.filter((e) => e.opponent.abbr === abbr && e.stage === 'regular')
     if (games.length === 0) return null
     const finals = games.filter((g) => g.final)
     const wins = finals.filter((g) => g.won).length

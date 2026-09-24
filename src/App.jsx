@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRefreshingData } from './useRefreshingData.js'
 import {
   DEMO_MODE, HEIGHT_MESSAGE_TYPE, SPONSOR_DISCLAIMER, SPONSOR_INQUIRY,
   TEAM_LOGO, USE_TEAM_LOGO,
@@ -21,10 +22,10 @@ const TABS = [
   { id: 'film', label: 'Film room' },
 ]
 
-// Always-on refresh: 2 minutes at rest, 60s while a game is live — so a page opened before
-// tip-off flips to Live on its own, without a reload.
-const REFRESH_MS = 120_000
-const LIVE_REFRESH_MS = 60_000
+// Module-level so the refresh hook gets a stable loader.
+const loadTracker = () =>
+  Promise.all([fetchSchedule(), fetchStandings()]).then(([schedule, standings]) => ({ schedule, standings }))
+const anyLive = (d) => d.schedule.events.some((e) => e.live)
 
 // "Updated X min ago" — re-renders every 30s so the relative label stays honest.
 function UpdatedStamp({ at }) {
@@ -55,50 +56,24 @@ export default function App() {
   const [filmGameId, setFilmGameId] = useState(
     () => new URLSearchParams(window.location.search).get('game')
   )
-  const [data, setData] = useState(null)
-  const [error, setError] = useState(null)
-  const [updatedAt, setUpdatedAt] = useState(null)
-  const hasData = useRef(false)
-
-  // One loader for first paint and every refresh. The FIRST load fails loud (visible error,
-  // self-retried on the next interval tick); once data is on screen, a failed refresh keeps
-  // the last good numbers (console-logged) — replacing a working scoreboard with an error
-  // over one transient blip mid-game is worse than briefly stale numbers.
-  const load = useCallback(() => {
-    Promise.all([fetchSchedule(), fetchStandings()])
-      .then(([schedule, standings]) => {
-        hasData.current = true
-        setData({ schedule, standings })
-        setUpdatedAt(Date.now())
-        setError(null)
-      })
-      .catch((err) => {
-        if (!hasData.current) setError(err.message)
-        else console.error('Refresh failed:', err)
-      })
-  }, [])
-
-  const live = data?.schedule.events.some((e) => e.live) ?? false
-
-  useEffect(() => { load() }, [load])
-  useEffect(() => {
-    const id = setInterval(() => { if (!document.hidden) load() }, live ? LIVE_REFRESH_MS : REFRESH_MS)
-    const onVisible = () => { if (!document.hidden) load() }
-    document.addEventListener('visibilitychange', onVisible)
-    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible) }
-  }, [load, live])
+  // One loader for first paint and every refresh — see useRefreshingData for
+  // the cadence and the fail-loud-first / keep-last-good-after rules.
+  const { data, error, updatedAt } = useRefreshingData(loadTracker, anyLive)
 
   // Post height to the host page so the WordPress iframe always fits the
-  // active tab with no inner scroll. Fires on every layout change.
+  // active tab with no inner scroll. It must be the CONTENT height: inside an
+  // iframe, documentElement.scrollHeight never drops below the iframe's own
+  // height, so a tall tab would ratchet the embed up and every shorter tab
+  // after it would leave a band of blank cream on the WPR page.
   useEffect(() => {
     const post = () => {
       window.parent.postMessage(
-        { type: HEIGHT_MESSAGE_TYPE, height: document.documentElement.scrollHeight },
+        { type: HEIGHT_MESSAGE_TYPE, height: Math.ceil(document.body.getBoundingClientRect().height) },
         '*'
       )
     }
     const observer = new ResizeObserver(post)
-    observer.observe(document.documentElement)
+    observer.observe(document.body)
     return () => observer.disconnect()
   }, [])
 

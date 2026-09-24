@@ -65,7 +65,7 @@ export default function FilmRoomTab({ schedule, gameId, onPickGame }) {
             {finals.map((g) => (
               <option key={g.id} value={g.id}>
                 {gameDate(g.date)} · {g.home ? 'vs' : 'at'} {g.opponent.name} · {g.won ? 'W' : 'L'}{' '}
-                {g.ourScore}–{g.theirScore}{g.postseason ? ' · Playoffs' : ''}{g.cup ? ' · NBA Cup' : ''}
+                {g.ourScore}–{g.theirScore}{g.tag ? ` · ${g.tag}` : ''}{g.cup ? ' · NBA Cup' : ''}
               </option>
             ))}
           </select>

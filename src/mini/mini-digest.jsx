@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { PLAYOFF_LINE, PLAY_IN_LINE, TEAM_ABBR, TEAM_LOGO } from '../config.js'
 import { fetchSchedule, fetchStandings } from '../api.js'
-import { gameDate, gameTime, periodLabel } from '../format.js'
+import { gameDate, gameTime, liveLabel } from '../format.js'
 import { destination } from './mini-shared.js'
 import './mini.css'
 
@@ -29,7 +29,9 @@ function MiniDigest() {
   const next = events.find((e) => !e.final && !e.live)
   const played = events.filter((e) => e.final)
   const featured = live ?? next ?? played[played.length - 1] ?? null
-  const heading = live ? 'Live now' : featured?.final ? 'Final' : played.length === 0 ? 'Opening night' : 'Next up'
+  const heading = live ? 'Live now'
+    : featured?.final ? 'Final'
+    : played.length === 0 && featured?.stage === 'regular' ? 'Opening night' : 'Next up'
 
   const east = data.standings.east
   // Unseeded (preseason) teams all show, alphabetical — see fetchStandings.
@@ -49,7 +51,7 @@ function MiniDigest() {
         <>
           <div className="mini-head">
             {heading} · {gameDate(featured.date)}
-            {featured.live && ` · ${periodLabel(featured.period, featured.clock)}`}
+            {featured.live && ` · ${liveLabel(featured)}`}
           </div>
           <Row
             logo={featured.home ? featured.opponent.logo : TEAM_LOGO}

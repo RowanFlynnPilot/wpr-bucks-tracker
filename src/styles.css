@@ -376,6 +376,13 @@ html, body {
   margin-bottom: 2px;
 }
 
+.hero-last {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--ink);
+  margin-top: 4px;
+}
+
 .hero-actions {
   display: flex;
   gap: 10px;

@@ -1,31 +1,21 @@
-import { StrictMode, useEffect, useState } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { TEAM_LOGO } from '../config.js'
 import { fetchSchedule } from '../api.js'
-import { gameDate, gameTime, periodLabel } from '../format.js'
+import { gameDate, gameTime, liveLabel } from '../format.js'
+import { useRefreshingData } from '../useRefreshingData.js'
 import { destination, trackMiniClick } from './mini-shared.js'
 import './mini.css'
 
+const anyLive = (d) => d.events.some((e) => e.live)
+
 function MiniScoreboard() {
-  const [data, setData] = useState(null)
-  const [error, setError] = useState(null)
+  // Same always-on refresh as the full tracker: this card sits in article
+  // sidebars all evening, so it has to flip from "Next up" to live to final
+  // on its own.
+  const { data, error } = useRefreshingData(fetchSchedule, anyLive)
 
-  useEffect(() => {
-    fetchSchedule().then(setData).catch((err) => setError(err.message))
-  }, [])
-
-  // Live-game polling, same pattern as the full tracker: self-sustaining
-  // 60s chain that stops at the final buzzer.
-  useEffect(() => {
-    if (!data || !data.events.some((e) => e.live)) return
-    const timer = setTimeout(() => {
-      fetchSchedule().then(setData)
-        .catch((err) => console.error('Live refresh failed:', err))
-    }, 60_000)
-    return () => clearTimeout(timer)
-  }, [data])
-
-  if (error) return <div className="mini-status">Scoreboard unavailable — refresh to retry.</div>
+  if (error && !data) return <div className="mini-status">Scoreboard unavailable — retrying shortly.</div>
   if (!data) return <div className="mini-status">Loading…</div>
 
   const played = data.events.filter((e) => e.final)
@@ -35,7 +25,9 @@ function MiniScoreboard() {
 
   if (!featured) return <div className="mini-status">No games on the schedule yet.</div>
 
-  const heading = live ? 'Live now' : featured.final ? 'Final' : played.length === 0 ? 'Opening night' : 'Next up'
+  const heading = live ? 'Live now'
+    : featured.final ? 'Final'
+    : played.length === 0 && featured.stage === 'regular' ? 'Opening night' : 'Next up'
   const bucksPts = featured.ourScore
   const oppPts = featured.theirScore
 
@@ -57,10 +49,10 @@ function MiniScoreboard() {
 
       <div className="mini-meta">
         {featured.live
-          ? `${periodLabel(featured.period, featured.clock)} · ${data.seasonLabel} season`
+          ? `${liveLabel(featured)} · ${data.seasonLabel} season`
           : featured.final
-            ? `${data.seasonLabel} season${featured.postseason ? ' · Playoffs' : ''}`
-            : `Tip-off ${gameTime(featured.date)} CT`}
+            ? `${data.seasonLabel} season${featured.tag ? ` · ${featured.tag}` : ''}`
+            : `Tip-off ${gameTime(featured.date)} CT${featured.tag ? ` · ${featured.tag}` : ''}`}
       </div>
       <div className="mini-cta">Full Bucks tracker →</div>
     </a>

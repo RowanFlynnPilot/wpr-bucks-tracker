@@ -1,6 +1,6 @@
 import { GAMES_IN_SEASON, PLAYOFF_LINE, PLAY_IN_LINE, TEAM_ABBR, VENUE } from '../config.js'
 import { gameTime } from '../format.js'
-import { scheduleFacts } from '../scheduleFacts.js'
+import { postseasonState, scheduleFacts } from '../scheduleFacts.js'
 import Section from './Section.jsx'
 
 // A few plain sentences generated from the same data the charts use — the
@@ -34,19 +34,23 @@ export default function Storylines({ schedule, standings }) {
 
   const lines = []
   if (upcoming.length === 0 && played.length > 0) {
-    // Offseason: sum up how it ended.
+    // Nothing scheduled: either the season is over, or the next play-in game
+    // or playoff round just hasn't been posted yet.
     const finish = us.seed <= PLAYOFF_LINE
       ? 'a playoff seed'
       : us.seed <= PLAY_IN_LINE ? 'a play-in berth' : 'outside the play-in field'
+    const post = played.filter((e) => e.stage === 'playIn' || e.stage === 'playoffs')
+    const over = postseasonState(schedule.events, us.seed) === 'over'
     lines.push(
-      <>The {schedule.seasonLabel} season closed at <strong>{us.wins}–{us.losses}</strong> — <strong>#{us.seed} in the East</strong>, {finish}.</>
+      <>The {schedule.seasonLabel} {post.length > 0 || !over ? 'regular season' : 'season'} closed at <strong>{us.wins}–{us.losses}</strong> — <strong>#{us.seed} in the East</strong>, {finish}.</>
     )
-    const post = played.filter((e) => e.postseason)
     if (post.length > 0) {
       const w = post.filter((e) => e.won).length
-      lines.push(<>The postseason run went <strong>{w}–{post.length - w}</strong>.</>)
+      lines.push(<>The postseason run {over ? 'went' : 'stands at'} <strong>{w}–{post.length - w}</strong>.</>)
     }
-    lines.push(<>Next season's schedule lands here when the NBA publishes it — opening night comes late October.</>)
+    lines.push(over
+      ? <>Next season's schedule lands here when the NBA publishes it — it appeared in mid-September this year.</>
+      : <>The next game lands here as soon as the NBA sets it.</>)
   } else if (played.length === 0) {
     // Preseason: what the calendar says, since there are no results yet.
     const facts = scheduleFacts(schedule.events)
@@ -57,7 +61,7 @@ export default function Storylines({ schedule, standings }) {
     if (o) {
       const day = o.date.toLocaleDateString('en-US', { timeZone: 'America/Chicago', weekday: 'long', month: 'short', day: 'numeric' })
       lines.push(
-        <>It tips off <strong>{day}</strong> at {gameTime(o.date)} CT {o.home ? `against the ${o.opponent.name} at ${VENUE}` : `on the road against the ${o.opponent.name}`}{o.tv ? ` (${o.tv})` : ''}.</>
+        <>It tips off <strong>{day}</strong> at {gameTime(o.date)} CT {o.home && !o.neutral ? `against the ${o.opponent.name} at ${VENUE}` : o.neutral ? `against the ${o.opponent.name} at ${o.venue}` : `on the road against the ${o.opponent.name}`}{o.tv ? ` (${o.tv})` : ''}.</>
       )
     }
     lines.push(

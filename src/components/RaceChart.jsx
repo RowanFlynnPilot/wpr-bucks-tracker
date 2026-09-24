@@ -2,16 +2,24 @@
 // single SVG path over a hardwood-toned baseline, with a two-tone area fill
 // (green above .500, rust below) so the season's shape reads at a glance.
 // Chart-led, like the Brewers division-race chart this page descends from.
+// Drawn at the container's real width (see useChartWidth) so text stays legible on phones.
 
-const W = 820
-const H = 240
+import { useChartWidth } from '../useChartWidth.js'
+
 const PAD = { top: 16, right: 12, bottom: 26, left: 40 }
 
 export default function RaceChart({ games }) {
-  if (games.length === 0) {
-    return <p className="section-note">No completed games yet — the line starts on opening night.</p>
-  }
+  const [ref, width] = useChartWidth()
+  return (
+    <div className="race-chart" ref={ref}>
+      {games.length === 0
+        ? <p className="section-note">No completed games yet — the line starts on opening night.</p>
+        : width > 0 && <RaceSvg games={games} W={width} H={width < 560 ? 200 : 240} />}
+    </div>
+  )
+}
 
+function RaceSvg({ games, W, H }) {
   let diff = 0
   const series = games.map((g, i) => {
     diff += g.won ? 1 : -1
@@ -37,8 +45,7 @@ export default function RaceChart({ games }) {
   const last = series[series.length - 1]
 
   return (
-    <div className="race-chart">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img"
+    <svg viewBox={`0 0 ${W} ${H}`} role="img"
         aria-label={`Games above .500 across ${series.length} games, finishing at ${last.diff >= 0 ? '+' : ''}${last.diff}`}>
         <defs>
           <clipPath id="race-above"><rect x="0" y="0" width={W} height={y(0)} /></clipPath>
@@ -80,6 +87,5 @@ export default function RaceChart({ games }) {
           Game {series.length}
         </text>
       </svg>
-    </div>
   )
 }

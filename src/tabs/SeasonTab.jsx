@@ -46,7 +46,7 @@ export default function SeasonTab({ schedule, standings, onOpenGame }) {
           title="The season, game by game"
           note="Games above or below .500 after each regular-season game."
         >
-          <RaceChart games={played.filter((g) => !g.postseason)} />
+          <RaceChart games={played.filter((g) => g.stage === 'regular')} />
         </Section>
       )}
 

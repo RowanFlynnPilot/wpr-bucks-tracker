@@ -13,26 +13,70 @@ async function getJson(url) {
   return res.json()
 }
 
-// Regular season (type 2) + postseason (type 3), merged and date-sorted.
-// An empty postseason events array is data (missed the playoffs), not an error.
+// Regular season (type 2), the Play-In Tournament (type 5 — its own season
+// type, easy to miss) and the playoffs (type 3), merged and date-sorted.
+// Empty play-in/playoff arrays are data (didn't qualify), not errors.
 export async function fetchSchedule() {
-  const [regular, post] = await Promise.all([
-    getJson(`${SITE}/site/v2/sports/basketball/nba/teams/${TEAM_ID}/schedule?season=${SEASON}&seasontype=2`),
-    getJson(`${SITE}/site/v2/sports/basketball/nba/teams/${TEAM_ID}/schedule?season=${SEASON}&seasontype=3`),
-  ])
+  const schedule = (type) =>
+    getJson(`${SITE}/site/v2/sports/basketball/nba/teams/${TEAM_ID}/schedule?season=${SEASON}&seasontype=${type}`)
+  const [regular, playIn, playoffs] = await Promise.all([schedule(2), schedule(5), schedule(3)])
   const events = [
-    ...(regular.events ?? []).map((e) => normalizeEvent(e, false)),
-    ...(post.events ?? []).map((e) => normalizeEvent(e, true)),
+    // The NBA Cup championship arrives with the regular season but doesn't
+    // count in the standings — its competition type is the one tell.
+    ...(regular.events ?? []).map((e) =>
+      normalizeEvent(e, e.competitions[0].type?.slug === 'commissioners-cup' ? 'cupFinal' : 'regular')),
+    ...(playIn.events ?? []).map((e) => normalizeEvent(e, 'playIn')),
+    ...(playoffs.events ?? []).map((e) => normalizeEvent(e, 'playoffs')),
   ]
     .filter((e) => !e.dead) // postponed/canceled shells aren't games
     .sort((a, b) => a.date - b.date)
   // `requestedSeason` is the season we asked for. The top-level `season` block
   // is the league's CURRENT season and flips to next year every September —
   // it mislabeled last season's data as "2026-27" until the rollover.
-  return { seasonLabel: regular.requestedSeason.displayName, events }
+  return { seasonLabel: regular.requestedSeason.displayName, events: await withLiveScores(events) }
 }
 
+// ESPN's team schedule drops a game's score while the clock is running — it
+// only fills it in at breaks and after the final (seen on live WNBA and MLB
+// games from the same API) — so a live game's score and status come from that
+// day's league scoreboard instead. The scoreboard files games under their US
+// Eastern date, even late West Coast tips.
+const easternDay = (date) =>
+  date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }).replaceAll('-', '')
+
+async function withLiveScores(events) {
+  const live = events.filter((e) => e.live)
+  if (live.length === 0) return events
+  const days = [...new Set(live.map((e) => easternDay(e.date)))]
+  const boards = await Promise.all(
+    days.map((d) => getJson(`${SITE}/site/v2/sports/basketball/nba/scoreboard?dates=${d}`))
+  )
+  const byId = new Map(boards.flatMap((b) => b.events.map((ev) => [ev.id, ev.competitions[0]])))
+  return events.map((e) => {
+    if (!e.live) return e
+    const comp = byId.get(e.id)
+    if (!comp) throw new Error(`Live game ${e.id} missing from the ${easternDay(e.date)} scoreboard`)
+    const us = comp.competitors.find((c) => c.team.abbreviation === TEAM_ABBR)
+    const them = comp.competitors.find((c) => c.team.abbreviation !== TEAM_ABBR)
+    const type = comp.status.type
+    return {
+      ...e,
+      final: type.state === 'post' && type.completed === true,
+      live: type.state === 'in',
+      period: comp.status.period ?? e.period,
+      clock: comp.status.displayClock ?? '',
+      detail: type.shortDetail ?? '',
+      won: us.winner === true,
+      ourScore: us.score ?? null, // a plain string on the scoreboard
+      theirScore: them.score ?? null,
+    }
+  })
+}
+
+// Postponed/canceled — and anything else ESPN closes out without completing it.
 const DEAD_STATUSES = new Set(['STATUS_POSTPONED', 'STATUS_CANCELED'])
+
+const STAGE_TAGS = { playIn: 'Play-In', playoffs: 'Playoffs', cupFinal: 'NBA Cup Final' }
 
 // Wisconsin readers get the Bucks-market feed; a national window trumps it.
 // National exclusives on streaming (Prime Video, Peacock — 11 Bucks games in
@@ -48,9 +92,11 @@ function pickBroadcast(broadcasts, ourSide) {
   return pick?.media?.shortName ?? null
 }
 
-// postseason comes from which endpoint the event was fetched from — the one
-// thing we know for certain — not from sniffing event fields.
-function normalizeEvent(event, postseason) {
+// `stage` comes from which endpoint the event was fetched from (plus the Cup
+// final's competition type) — the thing we know for certain — not from
+// sniffing notes. Only 'regular' games count toward the record: the race
+// chart, recap records, season series and calendar facts all key off it.
+function normalizeEvent(event, stage) {
   const comp = event.competitions[0]
   const us = comp.competitors.find((c) => c.team.abbreviation === TEAM_ABBR)
   const them = comp.competitors.find((c) => c.team.abbreviation !== TEAM_ABBR)
@@ -60,17 +106,22 @@ function normalizeEvent(event, postseason) {
     date: new Date(comp.date),
     final: type.state === 'post' && type.completed === true,
     live: type.state === 'in',
-    dead: DEAD_STATUSES.has(type.name),
+    dead: DEAD_STATUSES.has(type.name) || (type.state === 'post' && type.completed !== true),
     period: comp.status.period ?? 0,
     clock: comp.status.displayClock ?? '',
+    detail: type.shortDetail ?? '', // "Halftime", "End of 3rd" — names the breaks
     home: us.homeAway === 'home',
-    postseason,
+    // Cup semis/finals in Las Vegas list a designated "home" team — not a Fiserv Forum date.
+    neutral: comp.neutralSite === true,
+    stage,
+    tag: STAGE_TAGS[stage] ?? null,
     won: us.winner === true,
     ourScore: us.score?.displayValue ?? null,
     theirScore: them.score?.displayValue ?? null,
     venue: comp.venue?.fullName ?? null,
     tv: pickBroadcast(comp.broadcasts, us.homeAway),
-    cup: (comp.notes ?? []).some((n) => (n.headline ?? '').includes('NBA Cup')),
+    // Group play and knockouts; the final carries its own tag instead.
+    cup: stage === 'regular' && (comp.notes ?? []).some((n) => (n.headline ?? '').includes('NBA Cup')),
     opponent: {
       abbr: them.team.abbreviation,
       name: them.team.shortDisplayName ?? them.team.displayName,

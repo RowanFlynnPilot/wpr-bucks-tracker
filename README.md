@@ -4,8 +4,8 @@ Live Milwaukee Bucks tracker for **Wausau Pilot & Review** — a chart-led,
 tabbed page covering the featured game (live score or countdown), auto-written
 storylines, the games-above-.500 race chart, play-in odds, the Eastern
 Conference standings, the schedule with TV listings and the injury report,
-season stat leaders, and a film room that replays any game (win probability,
-the turning point, the big runs, a shot chart). Embedded into the WPR WordPress
+season stat leaders, and a film room that replays any game (the score flow,
+the full box score, the big runs, a shot chart). Embedded into the WPR WordPress
 site via iframe from GitHub Pages.
 
 Sibling of [`wpr-packers-tracker`](https://github.com/RowanFlynnPilot/wpr-packers-tracker)
@@ -28,11 +28,13 @@ Data sources (all browser-direct, keyless):
 
 | Data | Endpoint |
 |---|---|
-| Schedule, venues, TV, NBA Cup tags | `site.api.espn.com/.../teams/15/schedule?season=…&seasontype=2\|3` |
+| Schedule, venues, TV, NBA Cup tags | `site.api.espn.com/.../teams/15/schedule?season=…&seasontype=2\|5\|3` (regular, play-in, playoffs) |
+| Live scores during play | `site.api.espn.com/.../nba/scoreboard?dates=…` (the schedule feed drops scores mid-play) |
 | Standings, both conferences (records, splits, PPG) | `site.api.espn.com/apis/v2/.../standings?season=…` |
 | Team leaders + per-athlete stat lines | `sports.core.api.espn.com/.../teams/15/leaders` + athlete/statistics `$ref` resolution |
 | Injury report | `sports.core.api.espn.com/.../teams/15/injuries` + athlete `$ref` resolution |
-| Film room (win prob, plays, shots, box) | `site.api.espn.com/.../summary?event=…`, per game on demand |
+| Film room (score flow, plays, shots, box) | `site.api.espn.com/.../summary?event=…`, per game on demand |
+| Player season sheets (box-score rows) | `sports.core.api.espn.com/.../seasons/…/athletes/…` + statistics `$ref` |
 | WPR's own Bucks coverage | `wausaupilotandreview.com/wp-json/wp/v2/posts?categories=…` (WordPress REST) |
 
 Leader athlete names come from resolving the core API's `$ref` links, **not** from
@@ -122,7 +124,7 @@ with the `widget` (scoreboard/standings).
 
 Email can't run an iframe, so the deploy bakes `/mini-digest.html` into a
 static PNG at `/digest.png` (featured game + the play-in field), re-rendered on
-every deploy and twice daily (~6:30 AM / ~3:30 PM Central) by the workflow
+every deploy and twice daily (6:30 AM / 3:30 PM Central in daylight time, an hour earlier in winter) by the workflow
 schedule. Embed snippet and ops notes: `docs/HANDOFF.md`. The renderer is
 `scripts/render-digest.mjs` (Playwright, CI-only) — it snapshots an **image**
 for email; it is not a data pipeline.
@@ -131,8 +133,9 @@ for email; it is not a data pipeline.
 
 Everything tweakable lives in `src/config.js`:
 
-- **SEASON** — ESPN uses the season's *end* year; bump `2026 → 2027` when the
-  2026–27 schedule publishes (October).
+- **SEASON** — ESPN uses the season's *end* year (currently `2027` = 2026–27);
+  bump it when ESPN publishes the next schedule (mid-September in 2026). The
+  preseason views run on their own until opening night.
 - **SPONSOR / SPONSOR_INQUIRY / SPONSOR_DISCLAIMER** — the title sponsor
   (currently Ho-Chunk Gaming Wittenberg; logo self-hosted in `public/`, never
   hot-linked). `null` shows the "sponsorship available" house card in both
@@ -151,8 +154,8 @@ Everything tweakable lives in `src/config.js`:
 
 Plausible (domain `rowanflynnpilot.github.io`, so embedded views report with
 wausaupilotandreview.com as the source). Events: `Tab`, `Share`, `Calendar`,
-`Mini Click`, `Coverage Click`, `Sponsor Click`, `Film Game`, `Bookmark`,
-`Widget Error`.
+`Mini Click`, `Coverage Click`, `Sponsor Click`, `Box Score`, `Film Game`,
+`Player Card`, `Shot Filter`, `Bookmark`, `Widget Error`.
 
 ## Trademark note
 

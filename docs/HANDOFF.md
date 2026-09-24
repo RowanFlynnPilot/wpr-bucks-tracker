@@ -11,7 +11,7 @@ is in `README.md`; the non-negotiable architecture decision is in `CLAUDE.md`.
 | Full tracker | `/wpr-bucks-tracker/` | The Bucks page — iframe, auto-resizes |
 | Mini scoreboard | `/wpr-bucks-tracker/mini.html` | Sidebar / in-article card |
 | Mini standings | `/wpr-bucks-tracker/mini-standings.html` | Sidebar / in-article card |
-| Email digest image | `/wpr-bucks-tracker/digest.png` | Newsletter `<img>` — re-baked ~6:30 AM & ~3:30 PM Central |
+| Email digest image | `/wpr-bucks-tracker/digest.png` | Newsletter `<img>` — re-baked 6:30 AM & 3:30 PM Central (5:30 & 2:30 from Nov to mid-March) |
 
 Embed snippets for all of them are in `README.md` (copy-paste into a WordPress
 **Custom HTML** block). Two behaviors worth knowing:
@@ -133,5 +133,9 @@ Dashboard: plausible.io, site `rowanflynnpilot.github.io`.
 - **A postponed game shows up / a game is missing** — ESPN sometimes leaves
   postponed shells in the schedule; the tracker filters `STATUS_POSTPONED` and
   `STATUS_CANCELED`. If ESPN mislabels one, it clears when they fix their feed.
-- **Injury report or newsroom section missing** — both fail silent by design
-  (they're enhancements); they return when the feed does.
+- **Injury report shows "Couldn't load" / newsroom section missing** — the
+  injury report says so in place and the newsroom section hides itself (it's an
+  enhancement); both return on the next page load once the feed recovers.
+- **Newsletter image looks old** — check the Actions tab: a failed re-render
+  turns the run red (and GitHub emails the owner). ESPN refusing the headless
+  renderer is the known cause; see "Headless browsers vs ESPN" in `CLAUDE.md`.

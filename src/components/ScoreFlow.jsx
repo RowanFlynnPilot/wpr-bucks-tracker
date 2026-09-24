@@ -2,17 +2,35 @@
 // elapsed-time axis, stepped (the score holds between scores), tinted green
 // while Milwaukee leads and rust while it trails, with quarter lines. Replaces
 // the win-probability model with the actual scoreboard — hand-rolled SVG like
-// RaceChart, no chart lib.
+// RaceChart, no chart lib, and like it drawn at the container's real width
+// (see useChartWidth) so the labels stay legible on phones.
 
-const W = 820
-const H = 260
+import { useChartWidth } from '../useChartWidth.js'
+
 const PAD = { top: 16, right: 14, bottom: 26, left: 40 }
 
 export default function ScoreFlow({ flow, totalSec, maxPeriod }) {
+  const [ref, width] = useChartWidth()
   if (flow.length === 0) {
-    return <p className="section-note">No scoring timeline for this one.</p>
+    return <div className="race-chart" ref={ref}><p className="section-note">No scoring timeline for this one.</p></div>
   }
+  const high = Math.max(0, ...flow.map((p) => p.margin))
+  const low = Math.min(0, ...flow.map((p) => p.margin))
+  return (
+    <div className="race-chart" ref={ref}>
+      {width > 0 && (
+        <ScoreSvg flow={flow} totalSec={totalSec} maxPeriod={maxPeriod}
+          high={high} low={low} W={width} H={width < 560 ? 220 : 260} />
+      )}
+      <div className="chart-legend">
+        <span>Bucks lead above the hardwood line</span>
+        <span>biggest lead +{high} · worst deficit {low}</span>
+      </div>
+    </div>
+  )
+}
 
+function ScoreSvg({ flow, totalSec, maxPeriod, high, low, W, H }) {
   const maxAbs = Math.max(6, ...flow.map((p) => Math.abs(p.margin)))
   const x = (t) => PAD.left + (t / totalSec) * (W - PAD.left - PAD.right)
   const y = (m) => PAD.top + ((maxAbs - m) / (2 * maxAbs)) * (H - PAD.top - PAD.bottom)
@@ -42,11 +60,8 @@ export default function ScoreFlow({ flow, totalSec, maxPeriod }) {
   }
 
   const final = flow[flow.length - 1].margin
-  const high = Math.max(0, ...flow.map((p) => p.margin))
-  const low = Math.min(0, ...flow.map((p) => p.margin))
 
   return (
-    <div className="race-chart">
       <svg viewBox={`0 0 ${W} ${H}`} role="img"
         aria-label={`The score margin through the game — biggest Bucks lead ${high}, worst deficit ${low}, final margin ${final >= 0 ? '+' : ''}${final}`}>
         <defs>
@@ -98,10 +113,5 @@ export default function ScoreFlow({ flow, totalSec, maxPeriod }) {
           Game time →
         </text>
       </svg>
-      <div className="chart-legend">
-        <span>Bucks lead above the hardwood line</span>
-        <span>biggest lead +{high} · worst deficit {low}</span>
-      </div>
-    </div>
   )
 }

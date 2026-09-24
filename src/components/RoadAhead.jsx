@@ -18,7 +18,7 @@ export default function RoadAhead({ schedule, standings }) {
   if (withRows.length === 0) return null
 
   const rated = withRows.filter((x) => x.row.played > 0)
-  const homeLeft = upcoming.filter((g) => g.home).length
+  const homeLeft = upcoming.filter((g) => g.home && !g.neutral).length
   const next = withRows.slice(0, 8)
   const counts = `${upcoming.length} games left, ${homeLeft} of them at ${VENUE}.`
   const note = rated.length > 0

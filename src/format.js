@@ -34,6 +34,13 @@ export function periodLabel(period, clock) {
   return clock ? `${p} · ${clock}` : p
 }
 
+// A live game's status line. Breaks (halftime, end of a quarter) sit on a
+// 0.0 clock — "Q2 · 0.0" — so there ESPN's own short detail names them.
+export function liveLabel(game) {
+  if (!game.clock || /^0(:00|\.0)?$/.test(game.clock)) return game.detail || periodLabel(game.period)
+  return periodLabel(game.period, game.clock)
+}
+
 export function track(eventName, props) {
   // Guard for local dev / blocked analytics — Plausible loads from index.html.
   if (window.plausible) window.plausible(eventName, props ? { props } : undefined)

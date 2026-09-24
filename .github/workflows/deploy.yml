@@ -11,8 +11,9 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    # Refresh the email image twice daily, shortly before the ~8 AM and ~5 PM Central
-    # sends. Cron is UTC and does not follow DST; these land ~6:30 AM / ~3:30 PM CDT.
+    # Refresh the email image twice daily, before the ~8 AM and ~5 PM Central sends.
+    # Cron is UTC and does not follow DST: these land 6:30 AM / 3:30 PM during daylight
+    # time and an hour earlier (5:30 AM / 2:30 PM) from November to mid-March.
     - cron: '30 11 * * *'
     - cron: '30 20 * * *'
 
@@ -45,8 +46,8 @@ jobs:
     outputs:
       digest_fresh: ${{ steps.digest.outputs.fresh }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -54,7 +55,7 @@ jobs:
       - run: npm run build
       # Render the digest widget to dist/digest.png for the email newsletter (header note).
       - name: Cache Playwright Chromium
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -81,8 +82,8 @@ jobs:
             curl -sf -o dist/digest.png https://rowanflynnpilot.github.io/wpr-bucks-tracker/digest.png
             echo "fresh=false" >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -96,7 +97,7 @@ jobs:
       # NOTE: deploy-pages hard-caps its queue wait at 10 minutes. If the Pages queue
       # stalls, re-run the deploy job — the twice-daily schedule also self-heals it.
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   # The site still deploys when the digest render fails (the last image ships), but
   # the RUN goes red so GitHub emails the repo owner. A yellow warning annotation
