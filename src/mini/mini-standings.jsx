@@ -25,7 +25,7 @@ function MiniStandings() {
   const shown = rows.filter((r) => r.seed == null || r.seed <= PLAY_IN_LINE || r.abbr === TEAM_ABBR)
 
   return (
-    <a className="mini-card" href={destination()} onClick={() => trackMiniClick('standings')}>
+    <a className="mini-card" href={destination()} target="_top" onClick={() => trackMiniClick('standings')}>
       <div className="mini-kicker">Eastern Conference · Wausau Pilot &amp; Review</div>
       <div className="mini-head">
         {us.seed

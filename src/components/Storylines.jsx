@@ -1,10 +1,13 @@
 import { GAMES_IN_SEASON, PLAYOFF_LINE, PLAY_IN_LINE, TEAM_ABBR, VENUE } from '../config.js'
 import { gameTime } from '../format.js'
 import { postseasonState, scheduleFacts } from '../scheduleFacts.js'
+import { ordinal, seedRace } from '../standingsText.js'
 import Section from './Section.jsx'
 
 // A few plain sentences generated from the same data the charts use — the
 // "where things stand" a reader would otherwise assemble from three tables.
+// In-season they carry what the pulse tiles can't (the seed race with ties,
+// form, how the margin ranks) rather than repeating the record and splits.
 // Open editorial text with hardwood markers, not a box.
 
 const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
@@ -14,16 +17,6 @@ function streakPhrase(streak) {
   const word = WORDS[n] ?? n
   if (streak.startsWith('W')) return n === 1 ? 'coming off a win' : `winners of ${word} straight`
   return n === 1 ? 'coming off a loss' : `losers of ${word} straight`
-}
-
-// How many games `a` trails `b`.
-function gamesBack(a, b) {
-  const gb = ((b.wins - a.wins) + (a.losses - b.losses)) / 2
-  return Math.max(0, gb)
-}
-
-function fmtGb(gb) {
-  return gb === Math.floor(gb) ? `${gb}` : gb.toFixed(1)
 }
 
 export default function Storylines({ schedule, standings }) {
@@ -71,22 +64,20 @@ export default function Storylines({ schedule, standings }) {
       </>
     )
   } else {
+    const race = seedRace(east)
+    if (race) lines.push(<>{race}</>)
     lines.push(
-      <>The Bucks are <strong>{us.wins}–{us.losses}</strong>, <strong>#{us.seed} in the East</strong> — {streakPhrase(us.streak)}, <strong>{us.lastTen}</strong> over the last ten.</>
+      <>They're {streakPhrase(us.streak)}{us.played >= 10 && <>, <strong>{us.lastTen}</strong> over their last ten</>}.</>
     )
-    if (us.seed <= PLAYOFF_LINE) {
-      const seventh = east[PLAYOFF_LINE]
-      lines.push(<>That's a locked playoff seed today, <strong>{fmtGb(gamesBack(seventh, us))} games clear</strong> of the play-in field.</>)
-    } else if (us.seed <= PLAY_IN_LINE) {
-      const sixth = east[PLAYOFF_LINE - 1]
-      lines.push(<>That's a play-in spot today, <strong>{fmtGb(gamesBack(us, sixth))} games back</strong> of the top six.</>)
-    } else {
-      const tenth = east[PLAY_IN_LINE - 1]
-      lines.push(<>They sit <strong>{fmtGb(gamesBack(us, tenth))} games outside</strong> the play-in field.</>)
+    // How the scoring margin ranks league-wide — the one context the tiles lack.
+    const league = [...standings.east, ...standings.west]
+    const rank = [...league].sort((a, b) => b.pointDiffValue - a.pointDiffValue).findIndex((r) => r.abbr === TEAM_ABBR) + 1
+    const margin = Math.abs(us.pointDiffValue).toFixed(1)
+    if (us.pointDiffValue > 0) {
+      lines.push(<>They're outscoring opponents by <strong>{margin} points a night</strong>, {ordinal(rank)} in the NBA.</>)
+    } else if (us.pointDiffValue < 0) {
+      lines.push(<>They're being outscored by <strong>{margin} points a night</strong>, {ordinal(rank)} in the NBA.</>)
     }
-    lines.push(
-      <>They're <strong>{us.homeRecord}</strong> at {VENUE}, <strong>{us.roadRecord}</strong> on the road, and <strong>{us.divRecord}</strong> against the Central.</>
-    )
   }
   if (lines.length === 0) return null
 

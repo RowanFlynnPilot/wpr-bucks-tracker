@@ -1,4 +1,4 @@
-import { gameDate, gameTime, liveLabel } from '../format.js'
+import { ctDaysFromToday, gameDate, gameTime, liveLabel, todayWord } from '../format.js'
 
 // One schedule line. `detail` adds a venue/TV line (used where there's room);
 // `recap` adds the generated one-liner under a final. When `onOpen` is set and
@@ -6,10 +6,14 @@ import { gameDate, gameTime, liveLabel } from '../format.js'
 // a real href, so middle-click/new-tab work, with the SPA hop on plain clicks.
 export default function GameRow({ game, detail = false, recap = null, onOpen = null }) {
   const clickable = onOpen && game.final
+  // Today's game, not yet final, is flagged so it can't be missed in the list.
+  const today = !game.final && ctDaysFromToday(game.date) === 0
 
   const inner = (
     <>
-      <div className="when">{gameDate(game.date)}</div>
+      <div className="when">
+        {today ? <span className="today-chip">{todayWord(game.date)}</span> : gameDate(game.date)}
+      </div>
       <div className="matchup">
         <span className="vsat">{game.home ? 'vs' : 'at'}</span>
         {game.opponent.logo && <img src={game.opponent.logo} alt="" loading="lazy" />}

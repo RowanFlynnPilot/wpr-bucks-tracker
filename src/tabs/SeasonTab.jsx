@@ -7,7 +7,8 @@ import Storylines from '../components/Storylines.jsx'
 import RaceChart from '../components/RaceChart.jsx'
 import StandingsTable from '../components/StandingsTable.jsx'
 import VsCentral from '../components/VsCentral.jsx'
-import PlayInOdds from '../components/PlayInOdds.jsx'
+import Outlook from '../components/Outlook.jsx'
+import CupGroup from '../components/CupGroup.jsx'
 import RoadAhead from '../components/RoadAhead.jsx'
 import SponsorBand from '../components/SponsorBand.jsx'
 
@@ -26,18 +27,22 @@ export default function SeasonTab({ schedule, standings, onOpenGame }) {
       <Storylines schedule={schedule} standings={standings} />
 
       {preseason ? <SeasonAhead events={schedule.events} /> : (
+        // The number strip — the storylines carry what tiles can't, so nothing
+        // here repeats there. "Last 10" waits until ten games exist (five games
+        // in, "1–4 over the last ten" was false and just the record again).
         <Section kicker="Season pulse" title="Where things stand">
           <div className="pulse">
             <Stat value={`${us.wins}–${us.losses}`} label="Record" />
             <Stat value={us.seed ? `#${us.seed}` : '–'} label="East seed" />
             <Stat value={us.streak} label="Streak" />
-            <Stat value={us.lastTen} label="Last 10" />
+            {us.played >= 10 && <Stat value={us.lastTen} label="Last 10" />}
             <Stat value={us.pointDiff} label="Point diff / game" />
-            <Stat value={us.homeRecord} label={`At ${VENUE.split(' ')[0]}`} />
-            <Stat value={us.roadRecord} label="On the road" />
+            <Stat value={`${us.homeRecord} · ${us.roadRecord}`} label="Home · road" />
           </div>
         </Section>
       )}
+
+      <CupGroup schedule={schedule} />
 
       {/* No race to draw before the first final — the storylines say so. */}
       {!preseason && (
@@ -50,9 +55,7 @@ export default function SeasonTab({ schedule, standings, onOpenGame }) {
         </Section>
       )}
 
-      <SponsorBand slot="season" />
-
-      <PlayInOdds standings={standings} />
+      <Outlook standings={standings} />
 
       <Section
         kicker="Eastern Conference"
@@ -65,6 +68,10 @@ export default function SeasonTab({ schedule, standings, onOpenGame }) {
           <VsCentral schedule={schedule} />
         </div>
       </Section>
+
+      {/* The second title-sponsor impression, tied to the content it sits under
+          rather than repeating the masthead lockup above the odds module. */}
+      <SponsorBand slot="season" kicker="The standings, presented by" />
 
       <RoadAhead schedule={schedule} standings={standings} />
     </>

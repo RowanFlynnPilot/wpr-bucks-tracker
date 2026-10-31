@@ -74,6 +74,18 @@ backups and the afternoon refresh. The keepalive job re-enables both workflows.
   Bucks player box (ids match play participants).
 - `fetchPlayerSeason(athleteId)` — season averages per athlete (cached), for
   the stat sheets that unfold under box-score rows.
+- `fetchOutlook()` — ESPN's Basketball Power Index for the Bucks (core API
+  `powerindex/15`): playoff / top-six / play-in chances, projected record and
+  seed. Replaced the house play-in model, which said 5% when BPI said 0.2% —
+  we publish ESPN's model, attributed, rather than our own guess. Draft-lottery
+  numbers are deliberately not shown until the ownership of the Bucks' 2027
+  first (reported New Orleans swap) is verified.
+- `fetchCupGroup(opponentIds, key)` — the NBA Cup group table. ESPN publishes
+  no Cup standings, so it's built from the five group teams' schedules (games
+  noted "NBA Cup - Group Play"), ranked by record, then head-to-head among the
+  tied, point differential **excluding overtime** (OT finals fetch the summary
+  for regulation quarters — the schedule feed has no linescores), then points.
+  Events carry `cupRound` (the note after "NBA Cup - ") and `opponent.id`.
 - `src/wpr.js` — WPR's own Bucks coverage via WordPress REST (third external
   API, same rules: browser fetch, keyless, CORS-open). Coverage is an
   enhancement: the section renders nothing on failure.
@@ -94,7 +106,7 @@ data, and the tracker is built for it — `isPreseason()` in
 - Leaders: ESPN 404s the new season's leaders, so Season stats shows last
   season's final board, labeled; TeamProfile ranks (all ties) are hidden.
 - The pulse becomes "The season ahead" (opener, countdown, dates set, home
-  dates, back-to-backs); the race chart and play-in odds wait for results;
+  dates, back-to-backs); the race chart waits for results;
   VsCentral counts meetings; RoadAhead shows dates instead of 0–0 records.
 
 ## Headless browsers vs ESPN
@@ -123,8 +135,20 @@ relay `*.espn.com` requests through Node's `fetch` with `page.route` and add
   game's wording stable across renders). Every claim must stay derivable from
   real data — score, margin, OT, home/road, running record, streaks. Surfaced
   on schedule rows, the hero, and the film room.
-- `mini.html` — featured-game card (live > next > last final). `?to=` sets tap
-  destination (https-only, guarded in `mini-shared.js`).
+- **Which game leads** — `pickFeatured()` in `src/scheduleFacts.js`, shared by
+  the hero and the mini: live; then last night's final **until the day of the
+  next game** (the morning after, the result is the story — with a "Next up"
+  line); then the next game (on game day the kicker reads "Tonight · 7:00 PM
+  CT · TV"); then the last final. The Schedule tab follows the same clock:
+  Results lead the morning after, today's row wears a Tonight chip. All
+  day math is Central-time calendar days (`ctDaysFromToday` in format.js).
+- `src/standingsText.js` — the seed-race sentence (top six / play-in / outside,
+  with ties named) shared by the storylines and the digest caption.
+- Share and bookmark links point at `WPR_TRACKER_PAGE` when embedded (never
+  the github.io iframe address, never the news category archive).
+- `mini.html` — featured-game card (same pick as the hero; scheduled games show
+  both records). `?to=` sets tap destination (https-only, guarded in
+  `mini-shared.js`); taps open in `_top` so they leave the iframe.
 - `mini-standings.html` — East play-in field, Bucks always included.
 - `mini-digest.html` — the morning newsletter's sports-slot image (replaced the
   Brewers card, Nov 2026; served via `tools.wausaupilotandreview.com`, whose
@@ -161,8 +185,9 @@ sets them a day or two out) — never assume no upcoming games means done.
 ## Sponsorship & product surfaces
 
 `SPONSOR` in config is the title sponsor (SOLD: Ho-Chunk Gaming Wittenberg,
-2026–27), rendered in both title slots (`top` in the banner, `season`
-mid-Season-tab). A sold lockup is **always a white card** — sponsor art is
+2026–27), rendered in both title slots (`top` in the banner; `season` directly
+under the standings, kicker "The standings, presented by" — tied to content,
+not a repeat of the masthead lockup). A sold lockup is **always a white card** — sponsor art is
 drawn for white — with the tagline split at the em-dash, a Directions chip
 (role="button" span inside the card link; nested anchors are invalid), a
 UTM-tagged `rel="sponsored"` click-through, and `SPONSOR_DISCLAIMER` in the
@@ -172,7 +197,9 @@ the Brewers tracker. `null` renders the "sponsorship available" house card
 instead — unsold inventory should be visible, not hidden. `WATCH_VENUES`
 (per-listing bar/restaurant cards, "Catch the games this week" atop the
 Schedule tab) renders nothing while empty — readers never see an empty shelf.
-Clicks track per-slot. **Sales demo mode:** `?demo` (`DEMO_MODE`) fills open
+`CUP_SPONSOR` is a separate, smaller placement: a "The Cup race, presented by"
+credit line inside the Cup group card, live only during group play (Nov) —
+nothing renders while unsold. Clicks track per-slot. **Sales demo mode:** `?demo` (`DEMO_MODE`) fills open
 slots with placeholders at module load in config.js and shows a preview ribbon
 (sold slots never overridden — the exports are `let` for exactly this reason;
 same pattern as the Brewers/Packers). `docs/HANDOFF.md` is the newsroom

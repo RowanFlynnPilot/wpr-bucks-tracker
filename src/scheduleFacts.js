@@ -1,10 +1,27 @@
 import { GAMES_IN_SEASON } from './config.js'
+import { ctDay, ctDaysFromToday } from './format.js'
+
+// Which game leads the hero and the mini scoreboard:
+//   live      — a game in progress
+//   recent    — last night's (or today's) final, until the day of the next game:
+//               the morning after, the result is the story, not a game 34 hours out
+//   next      — the next game (on game day, "Tonight · 7:00 PM")
+//   last      — the most recent final, when nothing is scheduled (offseason)
+export function pickFeatured(events) {
+  const live = events.find((e) => e.live)
+  const next = events.find((e) => !e.final && !e.live) ?? null
+  const finals = events.filter((e) => e.final)
+  const last = finals[finals.length - 1] ?? null
+  if (live) return { game: live, mode: 'live', next, last }
+  const nextIsToday = next && ctDaysFromToday(next.date) === 0
+  if (last && !nextIsToday && ctDaysFromToday(last.date) >= -1) return { game: last, mode: 'recent', next, last }
+  if (next) return { game: next, mode: 'next', next, last }
+  if (last) return { game: last, mode: 'last', next, last }
+  return null
+}
 
 // Plain facts about the regular-season calendar, derived from the schedule
 // alone — what the preseason views say before there are results to report.
-
-// A game's date as a Central-time calendar day (YYYY-MM-DD).
-const ctDay = (date) => date.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' })
 
 const DAY_MS = 86_400_000
 

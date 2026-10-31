@@ -52,6 +52,7 @@ a.mini-card:hover { background: var(--cream); }
 .mini-matchup .pts { font-family: var(--font-data); font-weight: 700; font-size: 1.15rem; }
 .mini-matchup.won .pts { color: var(--win); }
 .mini-matchup .pts.dim { color: var(--ink-soft); font-weight: 400; }
+.mini-matchup .pts.rec { font-size: 0.85rem; }
 
 .mini-meta { font-family: var(--font-data); font-size: 0.72rem; color: var(--ink-soft); margin-top: 8px; }
 

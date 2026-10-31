@@ -20,8 +20,9 @@ front of them every time — and your name rides along.
 | Placement | Where | Status |
 |---|---|---|
 | **Title sponsorship — banner** | In the masthead, every tab, every visit | **SOLD** — Ho-Chunk Gaming Wittenberg (2026–27) |
-| **Title sponsorship — season band** | Mid-page on the default tab | **SOLD** — same sponsor, second impression |
+| **Title sponsorship — standings band** | "The standings, presented by" under the East standings on the default tab | **SOLD** — same sponsor, second impression |
 | **Where-to-Watch listings** | Top of the Schedule tab, sold *per venue* | **OPEN** — a bar/restaurant card: photos, amenity chips, game-day specials, tracked link |
+| **The Cup race** | "The Cup race, presented by" inside the NBA Cup group table, Season tab — November only | **OPEN** — a short seasonal add-on: logo + link for the four-week group stage |
 | **Newsletter digest** | WPR email sends (image refreshed twice daily) | Adjacent placement negotiable with the newsroom |
 
 The two title slots are one sponsor, sold together — category exclusivity comes

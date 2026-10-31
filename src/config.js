@@ -20,6 +20,16 @@ export const GAMES_IN_SEASON = 82
 // Central Division rivals — the season-series strip under the standings.
 export const CENTRAL_RIVALS = ['CHI', 'CLE', 'DET', 'IND']
 
+// NBA Cup group label (ESPN's notes say "NBA Cup - Group Play" but carry no
+// group letter; per NBA.com the Bucks' 2026-27 group is East Group A: Detroit,
+// Toronto, Orlando, Brooklyn). The members themselves come from the schedule.
+export const CUP_GROUP = 'East Group A'
+
+// Website URL of the WPR page that hosts the full tracker — where "Share" and
+// "Bookmark" point when the tracker is embedded (the bare github.io URL is
+// not the reader's page). The newsletter and the minis' ?to= link here too.
+export const WPR_TRACKER_PAGE = 'https://wausaupilotandreview.com/milwaukee-bucks/'
+
 // Team identity (Bucks "Good Land Green" + cream)
 export const TEAM_COLOR = '#00471B'
 export const TEAM_CREAM = '#EEE1C6'
@@ -46,6 +56,11 @@ export let SPONSOR = {
   address: 'N7198 US-45, Wittenberg, WI 54499',
 }
 export const SPONSOR_INQUIRY = 'weber.chris@wausaupilotandreview.com'
+
+// The NBA Cup race (Season tab, during group play) as its own placement — a
+// compact "The Cup race, presented by" credit. null = no credit (?demo shows a
+// placeholder). Shape: { name, logo?, url? }.
+export let CUP_SPONSOR = null
 
 // Shown in the footer while a gaming brand is the title sponsor. Set to '' to hide.
 export const SPONSOR_DISCLAIMER =
@@ -99,6 +114,7 @@ if (DEMO_MODE) {
     url: null,
     tagline: `This placement is open for the coming season — ${SPONSOR_INQUIRY}`,
   }
+  CUP_SPONSOR = CUP_SPONSOR || { name: 'Your Brand Here', logo: null, url: null }
   if (!WATCH_VENUES.length) {
     WATCH_VENUES = [
       {

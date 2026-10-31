@@ -96,7 +96,7 @@ function subline(category, s) {
   if (!s) return null
   switch (category) {
     case 'pointsPerGame': return `${s.fieldGoalPct}% FG · ${s.gamesPlayed} games`
-    case 'reboundsPerGame': return `${s.doubleDouble} double-doubles · ${s.gamesPlayed} games`
+    case 'reboundsPerGame': return `${s.doubleDouble} ${s.doubleDouble === 1 ? 'double-double' : 'double-doubles'} · ${s.gamesPlayed} ${s.gamesPlayed === 1 ? 'game' : 'games'}`
     case 'assistsPerGame': return `${s.avgMinutes} min/game · ${s.gamesPlayed} games`
     case 'stealsPerGame': return `${s.avgMinutes} min/game · ${s.gamesPlayed} games`
     case 'blocksPerGame': return `${s.avgRebounds} reb/game · ${s.gamesPlayed} games`

@@ -28,8 +28,11 @@ export default function VsCentral({ schedule }) {
         {rivals.map((r) => (
           <span className="rival-chip" key={r.abbr}>
             {r.logo && <img src={r.logo} alt="" loading="lazy" />}
-            {/* Before the first meeting, say how many are coming instead of 0–0. */}
-            {r.played > 0 ? `${r.wins}–${r.losses} vs ${r.name}` : `${r.meetings} meetings with the ${r.name}`}
+            {/* Before the first meeting, say how many are coming instead of 0–0;
+                after it, how many are left. */}
+            {r.played > 0
+              ? `${r.wins}–${r.losses} vs ${r.name}${r.meetings > r.played ? ` · ${r.meetings - r.played} left` : ''}`
+              : `${r.meetings} meetings with the ${r.name}`}
           </span>
         ))}
       </div>

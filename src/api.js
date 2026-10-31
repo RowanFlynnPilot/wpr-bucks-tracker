@@ -122,13 +122,18 @@ function normalizeEvent(event, stage) {
     tv: pickBroadcast(comp.broadcasts, us.homeAway),
     // Group play and knockouts; the final carries its own tag instead.
     cup: stage === 'regular' && (comp.notes ?? []).some((n) => (n.headline ?? '').includes('NBA Cup')),
+    // "Group Play" / "Quarterfinals" / "Semifinals" — from ESPN's note headline.
+    cupRound: (comp.notes ?? []).map((n) => n.headline ?? '').find((h) => h.startsWith('NBA Cup - '))?.slice(10) ?? null,
     opponent: {
+      id: them.team.id,
       abbr: them.team.abbreviation,
       name: them.team.shortDisplayName ?? them.team.displayName,
       logo: them.team.logos?.[0]?.href ?? null,
     },
   }
 }
+
+const dashed = (record) => record.replace('-', '–')
 
 // Both conferences, each sorted by playoff seed. The Season tab renders the East;
 // the West rows feed opponent context in the hero and league-wide scoring ranks.
@@ -158,13 +163,15 @@ export async function fetchStandings() {
         winPctValue: stats.winPercent.value,
         gamesBehind: stats.gamesBehind.displayValue,
         streak: stats.streak.displayValue,
-        lastTen: played === 0 ? '0-0' : stats['Last Ten Games'].displayValue,
+        // ESPN writes split records with hyphens ("3-2"); the tracker's records
+        // use en dashes ("3–2") — normalized once, here.
+        lastTen: played === 0 ? '0–0' : dashed(stats['Last Ten Games'].displayValue),
         pointDiff: stats.differential.displayValue,
         pointDiffValue: stats.differential.value,
         seed: stats.playoffSeed.value > 0 ? stats.playoffSeed.value : null,
-        homeRecord: stats.Home.displayValue,
-        roadRecord: stats.Road.displayValue,
-        divRecord: stats['vs. Div.'].displayValue,
+        homeRecord: dashed(stats.Home.displayValue),
+        roadRecord: dashed(stats.Road.displayValue),
+        divRecord: dashed(stats['vs. Div.'].displayValue),
         ppg: stats.avgPointsFor.value,
         ppgDisplay: stats.avgPointsFor.displayValue,
         oppg: stats.avgPointsAgainst.value,
@@ -254,6 +261,126 @@ async function loadLeaders(season) {
       athlete: refs.get(l.athlete.$ref),
     })),
   }))
+}
+
+// ---------- ESPN's season projection (BPI) ----------
+// The playoff picture comes from ESPN's Basketball Power Index, published and
+// labeled as ESPN's: results to date plus ESPN's player ratings, re-run daily.
+// It replaced a house Monte Carlo that, five games in, printed 5% for the
+// play-in against BPI's 0.2% and moved on every refresh. Cached per page —
+// BPI only updates once a day.
+let outlookPromise = null
+
+export function fetchOutlook() {
+  if (!outlookPromise) {
+    outlookPromise = loadOutlook()
+    outlookPromise.catch(() => { outlookPromise = null })
+  }
+  return outlookPromise
+}
+
+async function loadOutlook() {
+  const d = await getJson(`${CORE}/seasons/${SEASON}/powerindex/${TEAM_ID}`)
+  const stats = Object.fromEntries(d.stats.map((s) => [s.name, s]))
+  const stat = (name) => {
+    if (!stats[name]) throw new Error(`ESPN BPI response missing ${name}`)
+    return stats[name]
+  }
+  const projW = Math.round(stat('projectedw').value)
+  return {
+    playoffs: stat('probmakeplayoffs').displayValue, // includes reaching it through the play-in
+    top6: stat('top6seed').displayValue,
+    playIn: stat('playinchance').displayValue,
+    projW,
+    projL: Math.round(stat('projectedw').value + stat('projectedl').value) - projW,
+    projSeed: Math.round(stat('playoffseed').value),
+    updated: d.lastUpdated ? new Date(d.lastUpdated) : null,
+  }
+}
+
+// ---------- NBA Cup group table ----------
+// ESPN publishes no Cup group standings, so the table is built from the group's
+// own schedules: the Bucks' "NBA Cup - Group Play" opponents ARE the group, and
+// each one's schedule supplies the games the Bucks aren't in. Tiebreakers per
+// the NBA's Cup rules: head-to-head among the tied teams, then point
+// differential in group games with OVERTIME EXCLUDED (the schedule feed has no
+// quarter scores, so an overtime game's regulation margin comes from its box
+// score), then points scored. Cached per `key` — pass something that changes
+// when results do (the Bucks' finals count), so a Cup night refreshes it.
+const cupCache = new Map()
+
+export function fetchCupGroup(opponentIds, key) {
+  const cacheKey = `${opponentIds.join(',')}|${key}`
+  if (!cupCache.has(cacheKey)) {
+    const p = loadCupGroup(opponentIds)
+    p.catch(() => cupCache.delete(cacheKey))
+    cupCache.set(cacheKey, p)
+  }
+  return cupCache.get(cacheKey)
+}
+
+async function loadCupGroup(opponentIds) {
+  const teamIds = [TEAM_ID, ...opponentIds]
+  const schedules = await Promise.all(teamIds.map((id) =>
+    getJson(`${SITE}/site/v2/sports/basketball/nba/teams/${id}/schedule?season=${SEASON}&seasontype=2`)))
+
+  const teams = new Map()
+  const games = new Map()
+  for (const s of schedules) {
+    for (const e of s.events ?? []) {
+      const comp = e.competitions[0]
+      if (!(comp.notes ?? []).some((n) => n.headline === 'NBA Cup - Group Play')) continue
+      if (!comp.competitors.every((c) => teamIds.includes(c.team.id))) continue
+      for (const c of comp.competitors) {
+        teams.set(c.team.id, { id: c.team.id, abbr: c.team.abbreviation, name: c.team.shortDisplayName ?? c.team.displayName, logo: c.team.logos?.[0]?.href ?? null })
+      }
+      const type = comp.status.type
+      games.set(e.id, {
+        id: e.id,
+        final: type.state === 'post' && type.completed === true,
+        period: comp.status.period ?? 0,
+        sides: comp.competitors.map((c) => ({ id: c.team.id, score: Number(c.score?.displayValue ?? c.score?.value ?? 0) })),
+      })
+    }
+  }
+
+  // Regulation-only scores for overtime finals (the tiebreaker margin).
+  const finals = [...games.values()].filter((g) => g.final)
+  await Promise.all(finals.filter((g) => g.period > 4).map(async (g) => {
+    const d = await fetchGameDetail(g.id)
+    const regulation = (side) => side.quarters.slice(0, 4).reduce((sum, q) => sum + Number(q), 0)
+    const byAbbr = { [d.home.abbr]: regulation(d.home), [d.away.abbr]: regulation(d.away) }
+    g.regulation = g.sides.map((s) => byAbbr[teams.get(s.id).abbr])
+  }))
+
+  const rows = [...teams.values()].map((t) => ({ ...t, wins: 0, losses: 0, diff: 0, pointsFor: 0 }))
+  const row = (id) => rows.find((r) => r.id === id)
+  for (const g of finals) {
+    const [a, b] = g.sides
+    const winner = a.score > b.score ? a : b
+    const loser = winner === a ? b : a
+    row(winner.id).wins++
+    row(loser.id).losses++
+    const [ra, rb] = g.regulation ?? [a.score, b.score]
+    row(a.id).diff += ra - rb
+    row(b.id).diff += rb - ra
+    row(a.id).pointsFor += ra
+    row(b.id).pointsFor += rb
+  }
+
+  // Head-to-head wins among a set of tied teams.
+  const h2h = (id, tied) => finals.filter((g) => g.sides.every((s) => tied.includes(s.id)))
+    .filter((g) => { const [a, b] = g.sides; return (a.score > b.score ? a : b).id === id }).length
+  rows.sort((x, y) => (y.wins - x.wins) || (x.losses - y.losses))
+  const sorted = []
+  for (let i = 0; i < rows.length;) {
+    const tied = rows.filter((r) => r.wins === rows[i].wins && r.losses === rows[i].losses)
+    const ids = tied.map((r) => r.id)
+    tied.sort((x, y) => (h2h(y.id, ids) - h2h(x.id, ids)) || (y.diff - x.diff) || (y.pointsFor - x.pointsFor) || x.name.localeCompare(y.name))
+    sorted.push(...tied)
+    i += tied.length
+  }
+  return { rows: sorted, played: finals.length, total: games.size }
 }
 
 // ---------- Injuries ----------

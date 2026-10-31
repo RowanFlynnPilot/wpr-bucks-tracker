@@ -16,10 +16,11 @@ import FilmRoomTab from './tabs/FilmRoomTab.jsx'
 
 // Tab ids are stable — they key the ?tab= deep links and Plausible events; labels can change.
 const TABS = [
+  // `short` is the phone label — four full labels don't fit one row at 375px.
   { id: 'season', label: 'Season' },
   { id: 'schedule', label: 'Schedule' },
-  { id: 'leaders', label: 'Season stats' },
-  { id: 'film', label: 'Film room' },
+  { id: 'leaders', label: 'Season stats', short: 'Stats' },
+  { id: 'film', label: 'Film room', short: 'Film' },
 ]
 
 // Module-level so the refresh hook gets a stable loader.
@@ -39,7 +40,7 @@ function UpdatedStamp({ at }) {
   const label = mins < 1 ? 'just now' : mins === 1 ? '1 min ago' : `${mins} min ago`
   return (
     <div className="updated-stamp">
-      <span className="dot" aria-hidden="true" />Updated {label} · refreshes live
+      <span className="dot" aria-hidden="true" />Updated {label}<span className="hide-phone"> · refreshes live</span>
     </div>
   )
 }
@@ -137,7 +138,7 @@ export default function App() {
             ? <img className="banner-logo" src={TEAM_LOGO} alt="Milwaukee Bucks logo" />
             : <div className="banner-swatch" aria-hidden="true" />}
           <div>
-            <div className="banner-kicker">Wisconsin Sports · Wausau Pilot &amp; Review</div>
+            <div className="banner-kicker"><span className="hide-phone">Wisconsin Sports · </span>Wausau Pilot &amp; Review</div>
             <h1 className="banner-title">The Bucks, by the numbers</h1>
             <div className="banner-dek">The shape of Milwaukee's season, updated live.</div>
             <div className="banner-season">
@@ -162,7 +163,9 @@ export default function App() {
             className={t.id === tab ? 'active' : ''}
             onClick={() => switchTab(t.id)}
           >
-            {t.label}
+            {t.short
+              ? <><span className="hide-phone">{t.label}</span><span className="phone-only" aria-hidden="true">{t.short}</span></>
+              : t.label}
           </button>
         ))}
       </nav>

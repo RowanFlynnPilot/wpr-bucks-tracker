@@ -52,6 +52,11 @@ window.addEventListener('message', function (e) {
 then, like the Brewers page, a heading "Latest Milwaukee Bucks coverage:" and a
 Newspack **Post Carousel** block filtered to the *Milwaukee Bucks* category.
 
+Readers who tap **Share this game** or **Bookmark** inside the embed get this
+page's address (`WPR_TRACKER_PAGE` in `src/config.js`), not the github.io one —
+another reason it has to exist. If the tracker ever lives at a different URL,
+change that one constant.
+
 ## Newsletter digest
 
 The morning newsletter (`wpr-newsletter`, `wpr-morning-newsletter-template-v2.html`)
@@ -73,7 +78,8 @@ the run red rather than shipping an error card.
 ## The title sponsorship (SOLD — Ho-Chunk Gaming Wittenberg)
 
 `src/config.js` → `SPONSOR` holds the title sponsor; both title slots (the
-masthead banner and the mid-page band on the Season tab) render the same
+masthead banner, and "The standings, presented by" directly under the East
+standings on the Season tab) render the same
 lockup — logo on a white card, "800+ slots · Hotel · Dining" over "Wittenberg,
 WI", a Directions chip (Apple Maps on iPhones/Macs, Google Maps elsewhere), and
 a UTM-tagged click-through. `SPONSOR_DISCLAIMER` puts the 21+ / 1-800-GAMBLER
@@ -126,6 +132,18 @@ While the array is empty the section doesn't render at all — readers never see
 an empty shelf. Venue clicks report as `Sponsor Click` with slot
 `where-to-watch`.
 
+## The NBA Cup race (November, sellable)
+
+During NBA Cup group play the Season tab carries "The Cup race" — the Bucks'
+group table (East Group A: Pistons, Magic, Raptors, Nets) built from ESPN
+results, plus the Bucks' four Cup nights (Nov 6, 13, 25, 27). It appears on its
+own and disappears a week after the last group game. It has its own small
+"The Cup race, presented by" credit line — a short, seasonal add-on to pitch
+(`CUP_SPONSOR` in `src/config.js`: `{ name, logo, url }`, same logo rules as
+above). Nothing shows while it's unsold; `?demo` shows the placeholder. Clicks
+report as `Sponsor Click` with slot `cup`. Next fall, update `CUP_GROUP` to the
+new group's name; the teams come from the schedule automatically.
+
 ## Showing a prospect (sales demo mode)
 
 Append **`?demo`** to any tracker URL and every *unsold* slot fills with a
@@ -143,8 +161,10 @@ When ESPN publishes the new schedule, bump `SEASON` in `src/config.js`
 (ESPN uses the season's **end** year: 2027–28 season = `2028`), push to `main`.
 The 2026–27 schedule appeared in mid-September. Until opening night the
 tracker runs its preseason views on its own — opening-night countdown, the
-calendar facts, last season's stat leaders — and flips to live standings,
-odds, and the race chart after the first tip. Nothing else to change.
+calendar facts, last season's stat leaders — and flips to live standings
+and the race chart after the first tip. Nothing else to change. (ESPN's playoff
+projection — "What ESPN's model sees" — comes straight from ESPN's Basketball
+Power Index and is attributed as such.)
 
 ## What reports to Plausible
 

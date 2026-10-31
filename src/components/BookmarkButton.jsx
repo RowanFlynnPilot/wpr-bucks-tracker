@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { WPR_NEWS } from '../config.js'
+import { WPR_TRACKER_PAGE } from '../config.js'
 import { track } from '../format.js'
 
 // Stickiness nudge: "bookmark this page and come back." No browser exposes a
@@ -11,11 +11,11 @@ import { track } from '../format.js'
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '')
 const isTouch = typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(pointer: coarse)').matches
 
-// Where a bookmark/copy should point: the WPR Bucks page when embedded (readers
-// land back on the news site, not the bare iframe), else the standalone tracker.
+// Where a bookmark/copy should point: the WPR tracker page when embedded
+// (readers land back on the news site, not the bare iframe), else the
+// standalone tracker. Not the news category archive — that's stories, not this.
 function bookmarkUrl() {
-  if (window.self === window.top) return window.location.href
-  return WPR_NEWS?.archive || document.referrer || window.location.href
+  return window.self === window.top ? window.location.href : WPR_TRACKER_PAGE
 }
 
 const Key = ({ children }) => <kbd className="key">{children}</kbd>

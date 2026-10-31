@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { SPONSOR, SPONSOR_INQUIRY } from '../config.js'
 import { track } from '../format.js'
 
@@ -15,7 +16,9 @@ function directionsHref(address) {
   return isApple ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`
 }
 
-export default function SponsorBand({ slot, variant = 'light' }) {
+export default function SponsorBand({ slot, variant = 'light', kicker = 'Presented by' }) {
+  // A paying client's logo that fails to load shows the name, not a broken image.
+  const [logoFailed, setLogoFailed] = useState(false)
   if (!SPONSOR) {
     return (
       <div className={`sponsor-band open ${variant === 'dark' ? 'dark' : ''}`}>
@@ -52,10 +55,10 @@ export default function SponsorBand({ slot, variant = 'light' }) {
         onClick: () => track('Sponsor Click', { sponsor: SPONSOR.name, slot }),
       })}
     >
-      <div className="sb-kicker">Presented by</div>
+      <div className="sb-kicker">{kicker}</div>
       <div className="sb-row">
-        {SPONSOR.logo
-          ? <img src={SPONSOR.logo} alt={SPONSOR.name} />
+        {SPONSOR.logo && !logoFailed
+          ? <img src={SPONSOR.logo} alt={SPONSOR.name} onError={() => setLogoFailed(true)} />
           : <div className="sb-name">{SPONSOR.name}</div>}
         {offer && (
           <div className="sb-tagline">

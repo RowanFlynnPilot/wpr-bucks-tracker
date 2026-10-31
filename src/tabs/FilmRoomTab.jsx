@@ -86,7 +86,7 @@ export default function FilmRoomTab({ schedule, gameId, onPickGame }) {
         <>
           <BoxScoreTable boxScore={detail.boxScore} />
           <Section kicker="At a glance" title="Game leaders">
-            <GameLeaders leaders={detail.leaders} />
+            <GameLeaders leaders={detail.leaders} opponent={game.opponent.name} />
           </Section>
           <RunsCard scoring={detail.scoring} opponent={game.opponent.name} />
           <Section
@@ -244,7 +244,7 @@ function PlayerSeason({ id }) {
   )
 }
 
-function GameLeaders({ leaders }) {
+function GameLeaders({ leaders, opponent }) {
   if (leaders.length === 0) return null
   // Bucks first, opponent second.
   const sorted = [...leaders].sort((a, b) => (a.abbr === TEAM_ABBR ? -1 : 1) - (b.abbr === TEAM_ABBR ? -1 : 1))
@@ -252,7 +252,7 @@ function GameLeaders({ leaders }) {
     <div className="game-leaders">
       {sorted.map((team) => (
         <div key={team.abbr}>
-          <h3 className="gl-team">{team.abbr === TEAM_ABBR ? 'Bucks' : team.abbr}</h3>
+          <h3 className="gl-team">{team.abbr === TEAM_ABBR ? 'Bucks' : opponent}</h3>
           {team.cats.filter((c) => c.athlete).map((c) => (
             <div className="gl-row" key={c.name}>
               {c.headshot

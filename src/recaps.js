@@ -188,5 +188,7 @@ export function recapFor(game, ctxMap) {
 
   const opener = pick(OPENERS[bucket(game.won, margin)], seed)(game.opponent.name, score, where, ot)
   const second = followUp(game, ctxMap?.get(game.id), seed >> 3)
-  return second ? `${opener} ${second}` : opener
+  const recap = second ? `${opener} ${second}` : opener
+  // Word joiners keep a score or record whole: no "The record: 1–" / "4." wrap.
+  return recap.replace(/(\d)–(\d)/g, '$1⁠–⁠$2')
 }

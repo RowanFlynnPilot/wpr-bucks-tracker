@@ -1,6 +1,20 @@
 // Game times are shown in Central time — this is a Wisconsin publication.
 const CT = 'America/Chicago'
 
+// A date's Central-time calendar day, as YYYY-MM-DD.
+export const ctDay = (date) => date.toLocaleDateString('en-CA', { timeZone: CT })
+
+// Calendar-day offset from today in Central time: 0 today, -1 yesterday, 1 tomorrow.
+export function ctDaysFromToday(date) {
+  return Math.round((Date.parse(ctDay(date)) - Date.parse(ctDay(new Date()))) / 86_400_000)
+}
+
+// "Tonight" from 5 PM on, otherwise "Today" — only for a game on today's date.
+export function todayWord(date) {
+  const hour = Number(date.toLocaleString('en-US', { timeZone: CT, hour: 'numeric', hour12: false }))
+  return hour >= 17 ? 'Tonight' : 'Today'
+}
+
 export function gameDate(date) {
   return date.toLocaleDateString('en-US', {
     timeZone: CT,

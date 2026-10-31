@@ -2,7 +2,8 @@
 
 Live Milwaukee Bucks tracker for **Wausau Pilot & Review** — a chart-led,
 tabbed page covering the featured game (live score or countdown), auto-written
-storylines, the games-above-.500 race chart, play-in odds, the Eastern
+storylines, the NBA Cup group race (in November), the games-above-.500 race
+chart, ESPN's playoff projection, the Eastern
 Conference standings, the schedule with TV listings and the injury report,
 season stat leaders, and a film room that replays any game (the score flow,
 the full box score, the big runs, a shot chart). Embedded into the WPR WordPress
@@ -35,6 +36,8 @@ Data sources (all browser-direct, keyless):
 | Injury report | `sports.core.api.espn.com/.../teams/15/injuries` + athlete `$ref` resolution |
 | Film room (score flow, plays, shots, box) | `site.api.espn.com/.../summary?event=…`, per game on demand |
 | Player season sheets (box-score rows) | `sports.core.api.espn.com/.../seasons/…/athletes/…` + statistics `$ref` |
+| Playoff projection (ESPN BPI) | `sports.core.api.espn.com/.../seasons/…/powerindex/15` |
+| NBA Cup group table | the five group teams' `…/teams/{id}/schedule` feeds (ESPN publishes no Cup standings) |
 | WPR's own Bucks coverage | `wausaupilotandreview.com/wp-json/wp/v2/posts?categories=…` (WordPress REST) |
 
 Leader athlete names come from resolving the core API's `$ref` links, **not** from
@@ -144,8 +147,13 @@ Everything tweakable lives in `src/config.js`:
   week" (Schedule tab). Empty = section hidden. Append `?demo` to any URL for
   sales demo mode: open slots fill with "Your Brand Here" placeholders (sold
   slots never overridden; ordinary readers never see it).
+- **CUP_GROUP / CUP_SPONSOR** — the NBA Cup group's display name (teams come
+  from the schedule) and the Cup race's own "presented by" credit (`null` =
+  nothing shown).
 - **WPR_NEWS** — WordPress REST base + the `milwaukee-bucks` category id that
   powers "From the newsroom".
+- **WPR_TRACKER_PAGE** — the WPR page hosting the embed; Share and Bookmark
+  hand readers this address when they're inside the iframe.
 - **TEAM_ID / TEAM_ABBR / VENUE / CENTRAL_RIVALS** — repoint at another NBA
   team if WPR ever wants a second tracker.
 - **USE_TEAM_LOGO** — set `false` for a colors-only masthead (see trademark note).

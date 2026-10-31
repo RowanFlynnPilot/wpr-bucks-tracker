@@ -4,6 +4,7 @@ import { PLAYOFF_LINE, PLAY_IN_LINE, SPONSOR, TEAM_ABBR, TEAM_LOGO, VENUE, WATCH
 import { fetchGameDetail, fetchSchedule, fetchStandings } from '../api.js'
 import { gameDate, gameTime, liveLabel } from '../format.js'
 import { buildRecapContext, recapFor } from '../recaps.js'
+import { seedRace } from '../standingsText.js'
 import { destination, trackMiniClick } from './mini-shared.js'
 import './mini.css'
 
@@ -56,30 +57,6 @@ function eastWindow(east) {
   const i = east.findIndex((r) => r.abbr === TEAM_ABBR)
   const start = Math.min(Math.max(0, i - 2), Math.max(0, east.length - 5))
   return east.slice(start, start + 5)
-}
-
-// Games `a` trails `b`, as a sports desk writes it: "a half-game", "1 game",
-// "2.5 games". Zero when level.
-function gb(a, b) {
-  const g = Math.max(0, ((b.wins - a.wins) + (a.losses - b.losses)) / 2)
-  if (g === 0.5) return 'a half-game'
-  if (g === 1) return '1 game'
-  return `${Number.isInteger(g) ? g : g.toFixed(1)} games`
-}
-
-// One line that places the Bucks against the lines the window may not show.
-function seedRace(east) {
-  const us = east.find((r) => r.abbr === TEAM_ABBR)
-  if (!us.seed) return null
-  if (us.seed <= PLAYOFF_LINE) {
-    return `In playoff position — ${gb(east[PLAYOFF_LINE], us)} clear of the play-in.`
-  }
-  if (us.seed <= PLAY_IN_LINE) {
-    return `In the play-in field — ${gb(us, east[PLAYOFF_LINE - 1])} back of the top six.`
-  }
-  const tenth = east[PLAY_IN_LINE - 1]
-  const line = `${gb(us, tenth)} back of the play-in (10th: ${tenth.name}, ${tenth.wins}–${tenth.losses}).`
-  return line[0].toUpperCase() + line.slice(1) // "a half-game back…" opens the sentence
 }
 
 function MiniDigest() {
