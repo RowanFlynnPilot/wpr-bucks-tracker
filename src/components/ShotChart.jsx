@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { track } from '../format.js'
 
-// Halfcourt shot chart with a per-player filter. ESPN play coordinates: x spans
-// the 50-foot baseline, y runs from the baseline (0) toward halfcourt (47), rim
-// centered at (25, 5.25). Free throws and dead plays carry sentinel coords and
-// are filtered in api.js. `players` carries each Bucks player's game shooting
+// Halfcourt shot chart with a per-player filter. Court frame: x spans the
+// 50-foot baseline, y runs from the baseline (0) toward halfcourt (47), rim
+// centered at (25, 5.25). ESPN measures shot y from the rim; api.js converts
+// shots into this frame. Free throws and dead plays carry sentinel coords and
+// are filtered there too. `players` carries each Bucks player's game shooting
 // line from the box score, shown when they're selected.
 
 const W = 50

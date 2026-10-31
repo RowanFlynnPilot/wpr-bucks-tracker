@@ -376,19 +376,25 @@ async function loadGameDetail(eventId) {
       margin: usHome ? p.homeScore - p.awayScore : p.awayScore - p.homeScore,
     }))
 
-  // Bucks field-goal attempts with usable coordinates. ESPN marks free throws
-  // and dead plays with INT_MIN-ish sentinel coords — those aren't chartable.
-  // The shooter id comes from the play's participants and matches the box score.
+  // Bucks field-goal attempts with usable coordinates. ESPN's shot `y` is
+  // measured from the RIM (rim = 0; the baseline sits at -5.25, halfcourt at
+  // +41.75) — verified against the "N-foot" distances in the play text (0.66 ft
+  // mean error with the rim at 0, 2.65 ft with it at the baseline). `y` is
+  // converted to court coordinates here: feet from the baseline, the frame
+  // ShotChart draws in. ESPN marks free throws and dead plays with INT_MIN-ish
+  // sentinel coords — those aren't chartable. The shooter id comes from the
+  // play's participants and matches the box score.
+  const RIM_FROM_BASELINE = 5.25
   const shots = plays
     .filter((p) =>
       p.shootingPlay && p.team?.id === TEAM_ID && p.coordinate &&
       p.coordinate.x >= 0 && p.coordinate.x <= 50 &&
-      p.coordinate.y >= 0 && p.coordinate.y <= 45 &&
+      p.coordinate.y >= -RIM_FROM_BASELINE && p.coordinate.y <= 47 - RIM_FROM_BASELINE &&
       !/free throw/i.test(p.text ?? '')
     )
     .map((p) => ({
       x: p.coordinate.x,
-      y: p.coordinate.y,
+      y: p.coordinate.y + RIM_FROM_BASELINE,
       made: p.scoringPlay === true,
       three: (p.pointsAttempted ?? p.scoreValue) === 3 || /three point/i.test(p.text ?? ''),
       shooterId: p.participants?.[0]?.athlete?.id ?? null,
