@@ -124,7 +124,7 @@ with the `widget` (scoreboard/standings).
 
 Email can't run an iframe, so the deploy bakes `/mini-digest.html` into a
 static PNG at `/digest.png` (last game with leaders, next up, the East around the Bucks, sponsor) for the morning newsletter, re-rendered on
-every deploy and twice daily (6:30 AM / 3:30 PM Central in daylight time, an hour earlier in winter) by the workflow
+every deploy, at 5:00 AM Central sharp (`morning-digest.yml` waits overnight and dispatches the deploy — GitHub cron ran 3–6 h late in Oct 2026), and on backup ticks by the workflow
 schedule. Embed snippet and ops notes: `docs/HANDOFF.md`. The renderer is
 `scripts/render-digest.mjs` (Playwright, CI-only) — it snapshots an **image**
 for email; it is not a data pipeline.

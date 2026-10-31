@@ -11,10 +11,14 @@ deliberate. ESPN's site API and core API are public, stable, and CORS-open, so
 all data is fetched **directly in the browser** at page load. The standard WPR
 pipeline (scraper → Actions cron → static JSON) exists for scrape-fragile
 sources; ESPN is not one. Adding a caching layer here would be overengineering.
-The GitHub Action builds and deploys; its twice-daily schedule exists **only**
-to re-render the newsletter digest **image** (`dist/digest.png`, baked at build
-time, never committed) — email can't run the live widget. An image for email is
-not a data cache; don't let it become one.
+The GitHub Action builds and deploys; its schedules exist **only** to re-render
+the newsletter digest **image** (`dist/digest.png`, baked at build time, never
+committed) — email can't run the live widget. An image for email is not a data
+cache; don't let it become one. The morning bake is timed by
+`morning-digest.yml` (triggered loosely overnight, sleeps until 5:00 AM Central,
+then dispatches the deploy) because GitHub's scheduled runs fired 3–6 hours late
+in Oct 2026 and the newsletter builds at 6:58 AM; `deploy.yml`'s own crons are
+backups and the afternoon refresh. The keepalive job re-enables both workflows.
 
 ## Engineering rules (house style — applies to every change)
 

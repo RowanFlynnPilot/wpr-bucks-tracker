@@ -11,7 +11,7 @@ is in `README.md`; the non-negotiable architecture decision is in `CLAUDE.md`.
 | Full tracker | `/wpr-bucks-tracker/` | The WPR Bucks page (`/milwaukee-bucks/`) — iframe, auto-resizes |
 | Mini scoreboard | `/wpr-bucks-tracker/mini.html` | Sidebar / in-article card |
 | Mini standings | `/wpr-bucks-tracker/mini-standings.html` | Sidebar / in-article card |
-| Newsletter digest image | `tools.wausaupilotandreview.com/wpr-bucks-tracker/digest.png` | The morning newsletter's sports slot (replaced the Brewers card, Nov 2026) — re-baked 6:30 AM & 3:30 PM Central (5:30 & 2:30 from Nov to mid-March) |
+| Newsletter digest image | `tools.wausaupilotandreview.com/wpr-bucks-tracker/digest.png` | The morning newsletter's sports slot (replaced the Brewers card, Nov 2026) — re-baked at 5:00 AM Central sharp (morning-digest.yml) plus ~6:45 AM / ~3:45 PM backup ticks |
 
 Embed snippets for all of them are in `README.md` (copy-paste into a WordPress
 **Custom HTML** block). Two behaviors worth knowing:

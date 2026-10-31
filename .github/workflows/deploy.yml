@@ -11,11 +11,15 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    # Refresh the email image twice daily, before the ~8 AM and ~5 PM Central sends.
-    # Cron is UTC and does not follow DST: these land 6:30 AM / 3:30 PM during daylight
-    # time and an hour earlier (5:30 AM / 2:30 PM) from November to mid-March.
-    - cron: '30 11 * * *'
-    - cron: '30 20 * * *'
+    # The MORNING bake is NOT timed here: GitHub fires scheduled runs hours late
+    # (3–6 h in Oct 2026), so morning-digest.yml waits overnight and dispatches
+    # this workflow at exactly 5:00 AM Central, two hours before the 7:02 AM
+    # newsletter. These ticks are a mid-morning backup and an afternoon refresh.
+    # Cron is UTC, no DST; in CDT they land ~6:43 AM / ~3:43 PM Central (often
+    # later). Odd minutes on purpose: GitHub's scheduler is most congested at
+    # the top and half of the hour.
+    - cron: '43 11 * * *'
+    - cron: '43 20 * * *'
 
 permissions:
   contents: read
@@ -39,7 +43,9 @@ jobs:
       - name: Reset GitHub's 60-day schedule auto-disable timer
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api -X PUT repos/${{ github.repository }}/actions/workflows/deploy.yml/enable
+        run: |
+          gh api -X PUT repos/${{ github.repository }}/actions/workflows/deploy.yml/enable
+          gh api -X PUT repos/${{ github.repository }}/actions/workflows/morning-digest.yml/enable
 
   build:
     runs-on: ubuntu-latest
