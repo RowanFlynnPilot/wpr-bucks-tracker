@@ -72,7 +72,7 @@ and the script into a WordPress **Custom HTML** block:
 ```html
 <iframe id="wpr-bucks" src="https://rowanflynnpilot.github.io/wpr-bucks-tracker/"
         style="width:100%;border:0;height:1600px" loading="lazy"
-        allow="clipboard-write"
+        allow="web-share; clipboard-write"
         title="The Bucks, by the numbers — live stats tracker"></iframe>
 <script>
 window.addEventListener('message', function (e) {
@@ -86,7 +86,7 @@ window.addEventListener('message', function (e) {
 ```
 
 The `height` in the style is a first-paint fallback (the script takes over once
-it loads). `clipboard-write` lets the copy-link/share buttons work inside the
+it loads). `web-share` and `clipboard-write` let the share and copy-link buttons work inside the
 iframe. Deep links: append `?tab=schedule`, `?tab=leaders` (Season stats), or
 `?tab=film` to the iframe `src` to open a specific tab — useful from game stories.
 
@@ -123,7 +123,7 @@ with the `widget` (scoreboard/standings).
 ### Newsletter digest image
 
 Email can't run an iframe, so the deploy bakes `/mini-digest.html` into a
-static PNG at `/digest.png` (featured game + the play-in field), re-rendered on
+static PNG at `/digest.png` (last game with leaders, next up, the East around the Bucks, sponsor) for the morning newsletter, re-rendered on
 every deploy and twice daily (6:30 AM / 3:30 PM Central in daylight time, an hour earlier in winter) by the workflow
 schedule. Embed snippet and ops notes: `docs/HANDOFF.md`. The renderer is
 `scripts/render-digest.mjs` (Playwright, CI-only) — it snapshots an **image**

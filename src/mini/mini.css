@@ -76,27 +76,151 @@ table.mini-standings tr.playoff-line td { border-bottom: 2px solid var(--team); 
 
 .mini-status { padding: 30px 0; text-align: center; color: var(--ink-soft); font-size: 0.85rem; }
 
-/* ---------- Digest (email snapshot) ---------- */
+/* ---------- Digest (newsletter image) ----------
+   The newsletter's sports-slot family: a white card with a top accent, a
+   team-color band, then stacked sections — same grammar as the Brewers and
+   Packers digests. Sized for a 420px card baked at 2x (the newsletter shows it
+   at 536px). Kickers use the darkened hardwood #86622f (5.5:1 on white). */
 
-.mini-card.digest { max-width: 420px; }
+.mini-card.digest {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-top: 3px solid #b8905a;
+  border-radius: 8px;
+}
 
-.digest-section {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid var(--cream-deep);
-  font-size: 0.62rem;
+a.mini-card.digest:hover { background: #fff; }
+
+.dg-band {
+  background: var(--team);
+  color: #fff;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  font-weight: 700;
   text-transform: uppercase;
+  text-align: center;
+  padding: 5px 8px;
+}
+
+.dg-sec { padding: 11px 14px; }
+.dg-sec + .dg-sec { border-top: 1px solid var(--line); }
+
+.dg-kicker {
+  font-size: 10px;
   letter-spacing: 0.14em;
   font-weight: 700;
-  color: var(--team);
+  color: #86622f;
+  text-transform: uppercase;
   margin-bottom: 6px;
 }
 
-.digest-stamp {
-  margin-top: 10px;
-  font-family: var(--font-data);
-  font-size: 0.68rem;
-  color: var(--ink-soft);
+.dg-lockup { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.dg-lockup img { display: block; }
+.dg-side { display: inline-flex; align-items: center; gap: 6px; }
+.dg-team { font-family: var(--font-display); font-size: 14px; color: var(--ink); }
+.dg-team.win, .dg-team.us { font-weight: 700; color: var(--team); }
+.dg-score { font-family: var(--font-display); font-size: 22px; color: var(--ink); white-space: nowrap; }
+.dg-score .win { font-weight: 700; color: var(--team); }
+.dg-score .lose-win { font-weight: 700; }
+.dg-score .dash { font-size: 15px; color: var(--ink-soft); }
+.dg-lockup.next { gap: 8px; }
+.dg-vsat { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+
+.dg-recap {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink);
+  text-align: center;
+  margin: 7px 4px 2px;
 }
 
-a.mini-cta { display: block; text-decoration: none; color: var(--team); }
+.dg-perf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+.dg-who { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.dg-who img, .dg-face-gap {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--cream);
+  flex-shrink: 0;
+}
+.dg-face-gap { display: inline-block; }
+.dg-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dg-name b { color: #86622f; font-weight: 700; }
+.dg-line { color: var(--ink-soft); white-space: nowrap; flex-shrink: 0; font-family: var(--font-data); font-size: 10.5px; }
+
+.dg-sub { text-align: center; font-size: 10.5px; color: var(--ink-soft); margin: 5px 0 0; }
+.dg-sub.left { text-align: left; margin: 0; }
+
+.dg-table { width: 100%; border-collapse: collapse; }
+.dg-table th {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 700;
+  text-align: right;
+  padding: 3px 6px;
+}
+.dg-table td {
+  font-size: 12px;
+  color: var(--ink);
+  text-align: right;
+  padding: 4px 6px;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+.dg-table .left { text-align: left; }
+.dg-table td.seed { width: 18px; padding-right: 0; color: var(--ink-soft); font-family: var(--font-data); font-size: 10.5px; text-align: left; }
+.dg-tteam { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-display); font-size: 13.5px; }
+.dg-table tr.us td { background: var(--cream); }
+.dg-table tr.us .dg-tteam { font-weight: 700; color: var(--team); }
+.dg-table tr.playoff-line td { border-bottom: 2px solid var(--team); }
+.dg-table tr.play-in-line td { border-bottom: 2px dashed var(--ink-soft); }
+.dg-table td.strk-w { color: var(--win); font-weight: 700; }
+.dg-table td.strk-l { color: var(--loss); font-weight: 700; }
+.dg-caption { font-size: 10px; color: var(--ink-soft); margin-top: 6px; }
+
+.dg-partner { background: var(--cream); }
+.dg-partner-row { display: flex; align-items: center; gap: 11px; }
+.dg-partner-row + .dg-partner-row { margin-top: 10px; }
+.dg-partner-row img { border-radius: 6px; object-fit: cover; flex-shrink: 0; display: block; }
+.dg-partner-name { font-family: var(--font-display); font-size: 15.5px; line-height: 1.15; }
+.dg-partner-tag { font-size: 11px; margin-top: 3px; line-height: 1.35; }
+.dg-partner-meta { font-size: 10.5px; color: var(--ink-soft); margin-top: 3px; }
+
+.dg-foot {
+  border-top: 1px solid var(--line);
+  margin: 0 12px;
+  padding: 7px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.dg-presented { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.dg-presented > span {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: #86622f;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.dg-presented img { height: 22px; object-fit: contain; display: block; }
+.dg-presented em { font-size: 11px; color: var(--ink-soft); }
+.dg-cta { font-size: 11px; font-weight: 700; color: var(--team); white-space: nowrap; }

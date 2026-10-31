@@ -416,6 +416,7 @@ async function loadGameDetail(eventId) {
         name: c.name,
         label: c.displayName,
         athlete: top?.athlete?.displayName ?? null,
+        athleteId: top?.athlete?.id ?? null, // matches boxScore rows (the digest's stat lines)
         headshot: headshotUrl(top?.athlete?.headshot),
         value: top?.displayValue ?? '',
       }

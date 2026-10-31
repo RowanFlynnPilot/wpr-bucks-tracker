@@ -8,10 +8,10 @@ is in `README.md`; the non-negotiable architecture decision is in `CLAUDE.md`.
 
 | Surface | URL | Where it goes |
 |---|---|---|
-| Full tracker | `/wpr-bucks-tracker/` | The Bucks page — iframe, auto-resizes |
+| Full tracker | `/wpr-bucks-tracker/` | The WPR Bucks page (`/milwaukee-bucks/`) — iframe, auto-resizes |
 | Mini scoreboard | `/wpr-bucks-tracker/mini.html` | Sidebar / in-article card |
 | Mini standings | `/wpr-bucks-tracker/mini-standings.html` | Sidebar / in-article card |
-| Email digest image | `/wpr-bucks-tracker/digest.png` | Newsletter `<img>` — re-baked 6:30 AM & 3:30 PM Central (5:30 & 2:30 from Nov to mid-March) |
+| Newsletter digest image | `tools.wausaupilotandreview.com/wpr-bucks-tracker/digest.png` | The morning newsletter's sports slot (replaced the Brewers card, Nov 2026) — re-baked 6:30 AM & 3:30 PM Central (5:30 & 2:30 from Nov to mid-March) |
 
 Embed snippets for all of them are in `README.md` (copy-paste into a WordPress
 **Custom HTML** block). Two behaviors worth knowing:
@@ -22,22 +22,53 @@ Embed snippets for all of them are in `README.md` (copy-paste into a WordPress
   after clicking any game).
 - **Minis:** add `?to=https://wausaupilotandreview.com/milwaukee-bucks/` so a tap
   lands on the WPR Bucks page instead of the bare tracker. https URLs only.
+  **That page must exist first** — as of Oct 31, 2026 WordPress redirected
+  `/milwaukee-bucks/` to a 2023 article. See "The WPR Bucks page" below.
+
+## The WPR Bucks page
+
+The Brewers and Packers each have a WordPress page hosting their tracker
+(`/milwaukee-brewers/`, `/green-bay-packers/`); the Bucks need the same at
+`/milwaukee-bucks/` — the newsletter link and the minis' `?to=` point there.
+Create a page titled **Milwaukee Bucks** with slug `milwaukee-bucks`, and put
+in a **Custom HTML** block:
+
+```html
+<iframe id="wpr-bucks" src="https://rowanflynnpilot.github.io/wpr-bucks-tracker/"
+        style="width:100%;border:0;height:1600px" loading="lazy"
+        allow="web-share; clipboard-write"
+        title="The Bucks, by the numbers — live stats tracker"></iframe>
+<script>
+window.addEventListener('message', function (e) {
+  if (e.origin !== 'https://rowanflynnpilot.github.io') return
+  if (e.data && e.data.type === 'wpr-bucks-height') {
+    var f = document.getElementById('wpr-bucks')
+    if (f && e.data.height) f.style.height = e.data.height + 'px'
+  }
+})
+</script>
+```
+
+then, like the Brewers page, a heading "Latest Milwaukee Bucks coverage:" and a
+Newspack **Post Carousel** block filtered to the *Milwaukee Bucks* category.
 
 ## Newsletter digest
 
-Embed in email as a plain image + a real text link under it:
-
-```html
-<a href="https://wausaupilotandreview.com/milwaukee-bucks/">
-  <img src="https://rowanflynnpilot.github.io/wpr-bucks-tracker/digest.png"
-       width="420" alt="Bucks digest — score, standings" style="width:100%;max-width:420px" />
-</a>
-<p><a href="https://wausaupilotandreview.com/milwaukee-bucks/">Full Bucks tracker →</a></p>
-```
+The morning newsletter (`wpr-newsletter`, `wpr-morning-newsletter-template-v2.html`)
+carries the digest as a fixture in its sports slot, served through WPR's
+first-party image proxy (`tools.wausaupilotandreview.com`, the Cloudflare
+Worker `tools-proxy-worker.js` in that repo — `wpr-bucks-tracker` must be on its
+`ALLOWED` list, or the proxy redirects the image to the homepage). The card
+follows the Brewers/Packers digest grammar: last game (score, the recap line,
+the Bucks' points/rebounds/assists leaders), next up (date, tip, venue, TV), the
+East around the Bucks' seed with a one-line seed-race note, any sold game-day
+partner, and "Presented by" the title sponsor. Dates are always explicit (never
+"Tonight") so an image that missed a re-bake is still true.
 
 The image re-bakes twice daily (before the morning and afternoon sends) via the
 deploy workflow. If it ever looks stale, run the **Deploy to GitHub Pages** action
-manually (Actions tab → Run workflow) — that re-renders it.
+manually (Actions tab → Run workflow) — that re-renders it. A failed re-bake turns
+the run red rather than shipping an error card.
 
 ## The title sponsorship (SOLD — Ho-Chunk Gaming Wittenberg)
 

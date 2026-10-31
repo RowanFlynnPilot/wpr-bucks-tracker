@@ -53,22 +53,21 @@ try {
 
   await page.goto(url, { waitUntil: 'load', timeout: 60000 })
 
-  // Wait for real data: the standings table always populates; the featured-game
-  // section comes and goes with the calendar (no games at all before the schedule
-  // drops). Best-effort on the game heading so the offseason never fails the render.
-  await page.waitForSelector('.mini-card table tbody tr', { timeout: 60000 })
-  await page
-    .waitForFunction(() => {
-      const t = document.querySelector('.mini-card')?.innerText || ''
-      return /live now|final|next up|opening night/i.test(t) && /eastern conference/i.test(t)
-    }, { timeout: 30000 })
-    .catch(() => console.warn('Proceeding without every section (deep offseason?).'))
+  // The card says when it's done: data-ready once every section's data is in
+  // (schedule, standings, the last game's box score), data-error if a feed
+  // failed. An error card must never reach subscribers — throw, so the workflow
+  // ships the last good image and the digest-alert job turns the run red.
+  await page.waitForSelector('.mini-card[data-ready], .mini-card[data-error]', { timeout: 60000 })
+  if (await page.$('.mini-card[data-error]')) {
+    throw new Error(`Digest reported a feed error: ${await page.innerText('.mini-card')}`)
+  }
 
-  // Ensure web fonts and the team logos have painted so nothing renders in a
+  // Ensure web fonts, logos and headshots have painted so nothing renders in a
   // fallback font or half-loaded.
   await page.waitForLoadState('networkidle')
   await page.evaluate(() => document.fonts.ready)
-  await page.waitForTimeout(800)
+  await page.waitForFunction(() => [...document.images].every((img) => img.complete), null, { timeout: 15000 })
+  await page.waitForTimeout(500)
 
   await page.locator('.mini-card').screenshot({ path: out })
   console.log(`Wrote ${out}`)

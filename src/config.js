@@ -57,9 +57,12 @@ export const DEMO_MODE =
 
 // Where to watch this week: bar/restaurant listings, sold per listing. Each entry:
 //   { name: 'The Bar', tagline: '…', images: ['hero.jpg', 'thumb1.jpg', …],
-//     url: 'https://…', address: '123 Third St, Wausau', phone: '715-…',
-//     features: ['12 HDTVs', …], specials: ['$3 Wisconsin taps', …] }
+//     logo: 'square-logo.png', url: 'https://…', address: '123 Third St, Wausau',
+//     phone: '715-…', features: ['12 HDTVs', …], specials: ['$3 Wisconsin taps', …] }
 // Empty = the section doesn't render (except in ?demo — see below).
+// A sold listing (one with a `url`) also prints as the "Game-day partner" in
+// the newsletter digest image — with its square `logo`, tagline, address and
+// phone (evergreen fields only; dated specials would sit in inboxes expired).
 export let WATCH_VENUES = []
 
 // WPR's own Bucks coverage (WordPress REST). categoryId is the site's

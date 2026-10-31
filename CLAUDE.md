@@ -122,9 +122,18 @@ relay `*.espn.com` requests through Node's `fetch` with `page.route` and add
 - `mini.html` — featured-game card (live > next > last final). `?to=` sets tap
   destination (https-only, guarded in `mini-shared.js`).
 - `mini-standings.html` — East play-in field, Bucks always included.
-- `mini-digest.html` — the email snapshot (featured game + play-in field),
-  rendered to `digest.png` by `scripts/render-digest.mjs` in CI. `?image=1`
-  drops the CTA. It renders into a JS-less newsletter, so keep it self-contained.
+- `mini-digest.html` — the morning newsletter's sports-slot image (replaced the
+  Brewers card, Nov 2026; served via `tools.wausaupilotandreview.com`, whose
+  Worker allowlist must include this repo). Same grammar as the Brewers/Packers
+  digests: green band, last game (score, recap line, points/rebounds/assists
+  leaders with box-score lines), next up, a five-row East window around the
+  Bucks + seed-race line, sold game-day partner (image mode only), "Presented
+  by" sponsor. Rendered to `digest.png` by `scripts/render-digest.mjs` in CI;
+  `?image=1` drops the CTA. The card sets `data-ready` when every section's data
+  is in or `data-error` on a feed failure — the renderer waits on those and
+  refuses to bake an error card. Explicit dates only, never "Tonight": the
+  GitHub cron can drift past the 6:58 AM newsletter build, and a stale bake must
+  stay true.
 
 ## Refresh & live behavior (index + minis)
 
