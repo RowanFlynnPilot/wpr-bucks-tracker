@@ -20,25 +20,31 @@ export default function RaceChart({ games }) {
 }
 
 function RaceSvg({ games, W, H }) {
+  // Every season starts level on opening night — the line does too.
   let diff = 0
-  const series = games.map((g, i) => {
+  const series = [{ game: 0, diff: 0 }, ...games.map((g, i) => {
     diff += g.won ? 1 : -1
     return { game: i + 1, diff, won: g.won }
-  })
+  })]
 
-  const maxAbs = Math.max(4, ...series.map((p) => Math.abs(p.diff)))
-  const x = (game) => PAD.left + ((game - 1) / Math.max(1, series.length - 1)) * (W - PAD.left - PAD.right)
-  const y = (d) => PAD.top + ((maxAbs - d) / (2 * maxAbs)) * (H - PAD.top - PAD.bottom)
+  // Fit the range to the season so far, with headroom both sides of .500: a
+  // symmetric range left half the chart empty for a team living on one side.
+  const hi = Math.max(3, ...series.map((p) => p.diff + 1))
+  const lo = Math.min(-3, ...series.map((p) => p.diff - 1))
+  const n = series.length - 1
+  const x = (game) => PAD.left + (game / n) * (W - PAD.left - PAD.right)
+  const y = (d) => PAD.top + ((hi - d) / (hi - lo)) * (H - PAD.top - PAD.bottom)
 
   const line = series
     .map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.game).toFixed(1)},${y(p.diff).toFixed(1)}`)
     .join(' ')
   // Close the line down to the .500 baseline for the two-tone fill.
-  const area = `${line} L${x(series.length).toFixed(1)},${y(0).toFixed(1)} L${x(1).toFixed(1)},${y(0).toFixed(1)} Z`
+  const area = `${line} L${x(n).toFixed(1)},${y(0).toFixed(1)} L${x(0).toFixed(1)},${y(0).toFixed(1)} Z`
 
-  const gridStep = maxAbs > 12 ? 10 : 5
+  const span = hi - lo
+  const gridStep = span > 30 ? 10 : span > 12 ? 5 : 2
   const gridLines = []
-  for (let d = Math.ceil(-maxAbs / gridStep) * gridStep; d <= maxAbs; d += gridStep) {
+  for (let d = Math.ceil(lo / gridStep) * gridStep; d <= hi; d += gridStep) {
     if (d !== 0) gridLines.push(d)
   }
 
@@ -46,7 +52,7 @@ function RaceSvg({ games, W, H }) {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} role="img"
-        aria-label={`Games above .500 across ${series.length} games, finishing at ${last.diff >= 0 ? '+' : ''}${last.diff}`}>
+        aria-label={`Games above .500 across ${n} games, finishing at ${last.diff >= 0 ? '+' : ''}${last.diff}`}>
         <defs>
           <clipPath id="race-above"><rect x="0" y="0" width={W} height={y(0)} /></clipPath>
           <clipPath id="race-below"><rect x="0" y={y(0)} width={W} height={H - y(0)} /></clipPath>
@@ -84,7 +90,7 @@ function RaceSvg({ games, W, H }) {
 
         <text x={W - PAD.right} y={H - 8} textAnchor="end"
           fontFamily="var(--font-data)" fontSize="11" fill="var(--ink-soft)">
-          Game {series.length}
+          Game {n}
         </text>
       </svg>
   )

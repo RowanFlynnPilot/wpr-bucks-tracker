@@ -36,6 +36,7 @@ Data sources (all browser-direct, keyless):
 | Injury report | `sports.core.api.espn.com/.../teams/15/injuries` + athlete `$ref` resolution |
 | Film room (score flow, plays, shots, box) | `site.api.espn.com/.../summary?event=…`, per game on demand |
 | Player season sheets (box-score rows) | `sports.core.api.espn.com/.../seasons/…/athletes/…` + statistics `$ref` |
+| Roster season stats (Season stats table) | `site.api.espn.com/.../teams/15/athletes/statistics?season=…` |
 | Playoff projection (ESPN BPI) | `sports.core.api.espn.com/.../seasons/…/powerindex/15` |
 | NBA Cup group table | the five group teams' `…/teams/{id}/schedule` feeds (ESPN publishes no Cup standings) |
 | WPR's own Bucks coverage | `wausaupilotandreview.com/wp-json/wp/v2/posts?categories=…` (WordPress REST) |
@@ -162,7 +163,7 @@ Everything tweakable lives in `src/config.js`:
 
 Plausible (domain `rowanflynnpilot.github.io`, so embedded views report with
 wausaupilotandreview.com as the source). Events: `Tab`, `Share`, `Calendar`,
-`Mini Click`, `Coverage Click`, `Sponsor Click`, `Box Score`, `Film Game`,
+`Mini Click`, `Coverage Click`, `Sponsor Click`, `Box Score`, `Film Game`, `Roster Sort`,
 `Player Card`, `Shot Filter`, `Bookmark`, `Widget Error`.
 
 ## Trademark note

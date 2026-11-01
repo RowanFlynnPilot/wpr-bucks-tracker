@@ -29,7 +29,13 @@ backups and the afternoon refresh. The keepalive job re-enables both workflows.
   don't add defensive layers around it.
 - Charts are hand-rolled SVG (RaceChart, ScoreFlow, ShotChart). No chart library.
   Line charts draw at their container's real pixel width (`useChartWidth`) so
-  text stays 11px on phones — never a fixed wide viewBox scaled down.
+  text stays 11px on phones — never a fixed wide viewBox scaled down. The race
+  chart starts at 0 on opening night and fits its range to the season (with
+  headroom both sides of .500); the score flow stays symmetric (lead vs deficit).
+- Phones (≤560px): tables fit inside their card or scroll inside it — never the
+  page. The box score scrolls sideways with player names pinned (sticky) and
+  the unfolded season sheet held at the visible width (`100cqw` on the
+  `.box-scroll` size container).
 
 ## Data layer (`src/api.js`, plus `src/wpr.js`)
 
@@ -81,6 +87,10 @@ backups and the afternoon refresh. The keepalive job re-enables both workflows.
   scoreboard-overlaid event (`elapsedSec(period, clock)`; ScoreFlow's `nowSec`).
 - `fetchPlayerSeason(athleteId)` — season averages per athlete (cached), for
   the stat sheets that unfold under box-score rows.
+- `fetchRosterStats()` — every Bucks player's season line in one call
+  (`teams/15/athletes/statistics`), for the sortable roster table on Season
+  stats. Departed players stay in it with their Milwaukee numbers (2025–26
+  still lists Giannis), so it's safe where a roster join is not.
 - `fetchOutlook()` — ESPN's Basketball Power Index for the Bucks (core API
   `powerindex/15`): playoff / top-six / play-in chances, projected record and
   seed. Replaced the house play-in model, which said 5% when BPI said 0.2% —
@@ -89,9 +99,13 @@ backups and the afternoon refresh. The keepalive job re-enables both workflows.
   first (reported New Orleans swap) is verified.
 - `fetchCupGroup(opponentIds, key)` — the NBA Cup group table. ESPN publishes
   no Cup standings, so it's built from the five group teams' schedules (games
-  noted "NBA Cup - Group Play"), ranked by record, then head-to-head among the
-  tied, point differential **excluding overtime** (OT finals fetch the summary
-  for regulation quarters — the schedule feed has no linescores), then points.
+  noted "NBA Cup - Group Play"), ranked by record, then head-to-head *winning
+  percentage* among the tied (unplayed meetings count as even — mid-group the
+  table is provisional), point differential **excluding overtime** (OT finals
+  fetch the summary for regulation quarters — the schedule feed has no
+  linescores), then points; whenever a step splits a tie, each still-tied
+  subset restarts at head-to-head. Verified against the official 2025–26 East
+  Group C table (Knicks over Heat on head-to-head, Bucks' OT game at 0).
   Events carry `cupRound` (the note after "NBA Cup - ") and `opponent.id`.
 - `src/wpr.js` — WPR's own Bucks coverage via WordPress REST (third external
   API, same rules: browser fetch, keyless, CORS-open). Coverage is an
@@ -151,8 +165,11 @@ relay `*.espn.com` requests through Node's `fetch` with `page.route` and add
   CT · TV"); then the last final. The Schedule tab follows the same clock:
   Results lead the morning after, today's row wears a Tonight chip. All
   day math is Central-time calendar days (`ctDaysFromToday` in format.js).
-- `src/standingsText.js` — the seed-race sentence (top six / play-in / outside,
-  with ties named) shared by the storylines and the digest caption.
+- `src/standingsText.js` — the seed-race sentence (top six / play-in / outside)
+  shared by the storylines and the digest caption. Three cases, never mixed:
+  identical records = a tiebreaker; a positive games gap = "N games"; zero or
+  negative games-behind with different records (3–2 vs 4–3, 4–1 vs 6–2) =
+  "on winning percentage". Games-behind 0 is not a tie.
 - Share and bookmark links point at `WPR_TRACKER_PAGE` when embedded (never
   the github.io iframe address, never the news category archive).
 - `mini.html` — featured-game card (same pick as the hero; scheduled games show

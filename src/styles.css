@@ -524,6 +524,15 @@ html, body {
 .game-row .score.won .result { color: var(--win); }
 .game-row .score.lost .result { color: var(--loss); }
 .game-row .time { font-family: var(--font-data); font-size: 0.85rem; color: var(--ink-soft); }
+.game-row .time b { color: var(--ink); }
+.game-row .time .live-tag {
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--loss);
+}
 .today-chip {
   font-family: var(--font-body);
   font-size: 0.66rem;
@@ -697,6 +706,25 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 
 .rival-chip img { width: 18px; height: 18px; }
 
+/* ---------- Roster table (Season stats) ---------- */
+
+.roster-table .sort-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.roster-table .sort-btn:hover { color: var(--ink); }
+.roster-table .sort-btn.on { color: var(--team); text-decoration: underline; text-underline-offset: 3px; }
+.roster-table .sort-btn:focus-visible { outline: 2px solid var(--wpr-teal); outline-offset: 2px; }
+.roster-table td.sorted { color: var(--team); font-weight: 700; }
+.roster-table td.team-col { white-space: nowrap; }
+.roster-pos { font-family: var(--font-data); font-size: 0.7rem; color: var(--ink-soft); font-weight: 400; margin-left: 4px; }
+
 /* ---------- NBA Cup group ---------- */
 
 .cup-table td.team-col img { width: 20px; height: 20px; vertical-align: -5px; margin-right: 8px; }
@@ -856,7 +884,9 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
   max-width: 620px;
 }
 
-.box-scroll { overflow-x: auto; }
+/* Only the table scrolls sideways (phones); it's a size container so the
+   unfolded season sheet can match the visible width (100cqw) and stay put. */
+.box-scroll { overflow-x: auto; container-type: inline-size; }
 
 .box-table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.83rem; }
 
@@ -882,6 +912,15 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 }
 
 .box-table td.player { font-family: var(--font-body); font-weight: 600; text-align: left; }
+/* On phones the table scrolls sideways; the names stay pinned so every row
+   keeps its player. The hairline marks the pinned edge. */
+.box-table th.player, .box-table td.player {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--card);
+  box-shadow: 1px 0 0 var(--cream-deep);
+}
 .box-table td.player .starter { color: #b8905a; font-weight: 700; }
 .box-table tbody tr:last-child td { border-bottom: none; }
 
@@ -900,6 +939,9 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
   white-space: normal;
   text-align: left;
 }
+
+/* The sheet holds still at the visible width while the table scrolls under it. */
+.box-expand td > * { position: sticky; left: 14px; width: calc(100cqw - 28px); }
 
 .player-season { display: flex; align-items: center; gap: 14px; }
 
@@ -1416,6 +1458,8 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
   .lock-name { font-size: 1rem; }
   .hero-team .score { font-size: 1.7rem; }
   .standings .hide-sm { display: none; }
+  /* Six roster columns fit inside the card at 375px only with tighter cells. */
+  .roster-table th, .roster-table td { padding-left: 4px; padding-right: 4px; }
   .game-row { grid-template-columns: 78px 1fr auto; }
   .game-row .detail { padding-left: 90px; }
   .game-row .recap { padding-left: 90px; flex-wrap: wrap; }

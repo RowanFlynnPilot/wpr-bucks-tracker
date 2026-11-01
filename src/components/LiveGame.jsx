@@ -46,7 +46,7 @@ export default function LiveGame({ game }) {
       {/* Before the first basket there's no line to draw yet. */}
       {detail.flow.length > 0 && (
         <ScoreFlow flow={detail.flow} maxPeriod={maxPeriod} totalSec={gameLengthSec(maxPeriod)}
-          nowSec={elapsedSec(game.period, game.clock)} compact />
+          nowSec={elapsedSec(game.period, game.clock)} live compact />
       )}
       <div className="live-leaders">
         {sorted.map((team) => (

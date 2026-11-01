@@ -3,6 +3,7 @@ import { SEASON, TEAM_ABBR } from '../config.js'
 import { fetchLeaders } from '../api.js'
 import Section from '../components/Section.jsx'
 import TeamProfile from '../components/TeamProfile.jsx'
+import RosterTable from '../components/RosterTable.jsx'
 
 // ESPN end-year → "2025-26".
 const seasonLabel = (endYear) => `${endYear - 1}-${String(endYear).slice(2)}`
@@ -84,6 +85,9 @@ export default function LeadersTab({ standings }) {
           ))}
         </div>
       </Section>
+
+      {/* The whole roster's season lines, once there's a season to show. */}
+      {!preseason && <RosterTable />}
 
       {/* League ranks of a 0–0 field are all ties — the profile starts with the season. */}
       {!preseason && <TeamProfile standings={standings} />}

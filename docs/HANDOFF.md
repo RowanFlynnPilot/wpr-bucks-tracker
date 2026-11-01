@@ -169,6 +169,7 @@ Power Index and is attributed as such.)
 ## What reports to Plausible
 
 `Tab` (tab opens), `Share`, `Calendar` (add-to-calendar), `Mini Click`,
+`Roster Sort` (column taps on the Season stats roster table),
 `Coverage Click` (newsroom links), `Sponsor Click`, `Box Score` (game clicks
 into the film room, tagged `schedule`/`hero`), `Film Game` (film-room game
 picks), `Player Card` (box-score row opens), `Shot Filter` (shot-chart player

@@ -368,16 +368,38 @@ async function loadCupGroup(opponentIds) {
     row(b.id).pointsFor += rb
   }
 
-  // Head-to-head wins among a set of tied teams.
-  const h2h = (id, tied) => finals.filter((g) => g.sides.every((s) => tied.includes(s.id)))
-    .filter((g) => { const [a, b] = g.sides; return (a.score > b.score ? a : b).id === id }).length
+  // Head-to-head winning percentage among a set of tied teams — a percentage,
+  // not a win count, so a team that hasn't met the others yet isn't ranked as
+  // if it lost to them (mid-group it sits at an even .500).
+  const h2hPct = (id, ids) => {
+    const meetings = finals.filter((g) => g.sides.every((s) => ids.includes(s.id)) && g.sides.some((s) => s.id === id))
+    if (meetings.length === 0) return 0.5
+    const wins = meetings.filter((g) => { const [a, b] = g.sides; return (a.score > b.score ? a : b).id === id }).length
+    return wins / meetings.length
+  }
+  const criteria = [
+    (r, ids) => h2hPct(r.id, ids),
+    (r) => r.diff,
+    (r) => r.pointsFor,
+  ]
+  // Apply the criteria in order; when one splits the group, every subset that
+  // is still tied starts over from head-to-head among just those teams.
+  const breakTie = (tied) => {
+    if (tied.length < 2) return tied
+    const ids = tied.map((r) => r.id)
+    for (const value of criteria) {
+      const scored = tied.map((r) => ({ r, v: value(r, ids) }))
+      const levels = [...new Set(scored.map((s) => s.v))].sort((a, b) => b - a)
+      if (levels.length === 1) continue
+      return levels.flatMap((v) => breakTie(scored.filter((s) => s.v === v).map((s) => s.r)))
+    }
+    return [...tied].sort((x, y) => x.name.localeCompare(y.name)) // the NBA draws lots; we go alphabetical
+  }
   rows.sort((x, y) => (y.wins - x.wins) || (x.losses - y.losses))
   const sorted = []
   for (let i = 0; i < rows.length;) {
     const tied = rows.filter((r) => r.wins === rows[i].wins && r.losses === rows[i].losses)
-    const ids = tied.map((r) => r.id)
-    tied.sort((x, y) => (h2h(y.id, ids) - h2h(x.id, ids)) || (y.diff - x.diff) || (y.pointsFor - x.pointsFor) || x.name.localeCompare(y.name))
-    sorted.push(...tied)
+    sorted.push(...breakTie(tied))
     i += tied.length
   }
   return { rows: sorted, played: finals.length, total: games.size }
@@ -418,6 +440,50 @@ async function loadInjuries(teamId) {
   const severity = (s) => (s === 'Out' ? 0 : 1)
   items.sort((a, b) => severity(a.status) - severity(b.status) || (b.date ?? 0) - (a.date ?? 0))
   return items
+}
+
+// ---------- Roster season stats (Season stats tab) ----------
+
+// Every player's season line for the Bucks in one call. Players dealt away
+// mid-season stay in it with their Milwaukee numbers (verified: 2025-26 still
+// lists Giannis, 36 games), so it never drops a departed player the way a
+// roster join would.
+let rosterStatsPromise = null
+
+export function fetchRosterStats() {
+  if (!rosterStatsPromise) {
+    rosterStatsPromise = loadRosterStats()
+    rosterStatsPromise.catch(() => { rosterStatsPromise = null })
+  }
+  return rosterStatsPromise
+}
+
+async function loadRosterStats() {
+  const d = await getJson(`${SITE}/site/v2/sports/basketball/nba/teams/${TEAM_ID}/athletes/statistics?season=${SEASON}&seasontype=2`)
+  const block = d.results.find((r) => r.name === 'game')
+  if (!block) throw new Error('ESPN roster stats response missing the game block')
+  return block.leaders.map((l) => {
+    const stats = {}
+    for (const cat of l.statistics) for (const s of cat.stats) stats[s.name] = s
+    const stat = (name) => {
+      if (!stats[name]) throw new Error(`ESPN roster stats missing ${name} for ${l.athlete.displayName}`)
+      return { value: stats[name].value, display: stats[name].displayValue }
+    }
+    return {
+      id: l.athlete.id,
+      name: l.athlete.shortName,
+      position: l.athlete.position?.abbreviation ?? '',
+      gp: stat('gamesPlayed'),
+      min: stat('avgMinutes'),
+      pts: stat('avgPoints'),
+      reb: stat('avgRebounds'),
+      ast: stat('avgAssists'),
+      stl: stat('avgSteals'),
+      blk: stat('avgBlocks'),
+      fg: stat('fieldGoalPct'),
+      three: stat('threePointPct'),
+    }
+  })
 }
 
 // ---------- Player season stat sheets (box-score cards) ----------

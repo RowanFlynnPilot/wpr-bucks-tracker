@@ -11,7 +11,7 @@ const PAD = { top: 16, right: 14, bottom: 26, left: 40 }
 
 // `nowSec` is where the line stops: the final horn for a final, the current
 // clock for a game in progress (the rest of the axis is game still to play).
-export default function ScoreFlow({ flow, totalSec, maxPeriod, nowSec = totalSec, compact = false }) {
+export default function ScoreFlow({ flow, totalSec, maxPeriod, nowSec = totalSec, live = false, compact = false }) {
   const [ref, width] = useChartWidth()
   if (flow.length === 0) {
     return <div className="race-chart" ref={ref}><p className="section-note">No scoring timeline for this one.</p></div>
@@ -24,7 +24,7 @@ export default function ScoreFlow({ flow, totalSec, maxPeriod, nowSec = totalSec
     <div className="race-chart" ref={ref}>
       {width > 0 && (
         <ScoreSvg flow={flow} totalSec={totalSec} maxPeriod={maxPeriod} endSec={endSec}
-          live={endSec < totalSec}
+          live={live}
           high={high} low={low} W={width} H={compact ? 160 : width < 560 ? 220 : 260} />
       )}
       <div className="chart-legend">
@@ -108,8 +108,8 @@ function ScoreSvg({ flow, totalSec, maxPeriod, endSec, live, high, low, W, H }) 
           strokeLinejoin="round" strokeLinecap="round" />
 
         <circle cx={x(endSec)} cy={y(final)} r="4" fill="var(--team)" />
-        <text x={live ? x(endSec) : W - PAD.right} y={y(final) + (final >= 0 ? -10 : 18)}
-          textAnchor={live ? 'middle' : 'end'}
+        <text x={endSec < totalSec ? x(endSec) : W - PAD.right} y={y(final) + (final >= 0 ? -10 : 18)}
+          textAnchor={endSec < totalSec ? 'middle' : 'end'}
           fontFamily="var(--font-data)" fontSize="12" fontWeight="700" fill="var(--team)">
           {final >= 0 ? `+${final}` : final}
         </text>

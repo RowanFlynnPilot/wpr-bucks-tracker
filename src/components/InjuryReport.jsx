@@ -11,6 +11,8 @@ export default function InjuryReport({ nextGame }) {
   const [ours, setOurs] = useState(null)
   const [theirs, setTheirs] = useState(null)
   const [error, setError] = useState(null)
+  // The opponent's list fails on its own — it never takes the Bucks' report down.
+  const [theirError, setTheirError] = useState(null)
 
   useEffect(() => {
     fetchInjuries().then(setOurs).catch((err) => setError(err.message))
@@ -19,9 +21,10 @@ export default function InjuryReport({ nextGame }) {
     if (!opponent) return
     let alive = true
     setTheirs(null)
+    setTheirError(null)
     fetchInjuries(opponent.id)
       .then((items) => { if (alive) setTheirs(items) })
-      .catch((err) => { if (alive) setError(err.message) })
+      .catch((err) => { if (alive) setTheirError(err.message) })
     return () => { alive = false }
   }, [opponent?.id])
 
@@ -41,10 +44,12 @@ export default function InjuryReport({ nextGame }) {
       <div className="card">
         <h3 className="group-label">Bucks</h3>
         <Report items={ours} healthy="Nobody on the report — full strength." />
-        {opponent && theirs && (
+        {opponent && (theirs || theirError) && (
           <>
             <h3 className="group-label injury-opp">The {opponent.name}, next up ({when})</h3>
-            <Report items={theirs} healthy={`The ${opponent.name} list nobody.`} />
+            {theirError
+              ? <p className="section-note">Couldn't load their report. ({theirError})</p>
+              : <Report items={theirs} healthy={`The ${opponent.name} list nobody.`} />}
           </>
         )}
         <p className="section-note" style={{ marginTop: 8 }}>Most serious first · via ESPN.</p>

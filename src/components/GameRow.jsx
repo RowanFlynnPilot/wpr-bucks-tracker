@@ -28,7 +28,10 @@ export default function GameRow({ game, detail = false, recap = null, onOpen = n
         </div>
       ) : (
         <div className="time">
-          {game.live ? `Live · ${liveLabel(game)}` : gameTime(game.date)}
+          {/* Live: the score (Bucks first, like the finals) and the clock. */}
+          {game.live
+            ? <><span className="live-tag">Live</span> <b>{game.ourScore}–{game.theirScore}</b> · {liveLabel(game)}</>
+            : gameTime(game.date)}
         </div>
       )}
       {detail && (game.venue || game.tv) && (

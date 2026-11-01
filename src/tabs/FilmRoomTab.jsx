@@ -130,41 +130,43 @@ function BoxScoreTable({ boxScore }) {
 
   return (
     <Section kicker="The numbers" title="Bucks box score">
-      <div className="card box-scroll">
-        <table className="box-table">
-          <thead>
-            <tr>
-              <th className="player">Player</th>
-              {idx.map(([label]) => <th key={label}>{label}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <Fragment key={`${r.name}-${r.jersey}`}>
-                <tr
-                  className={`box-row ${r.id ? 'clickable' : ''} ${openId === r.id ? 'open' : ''}`}
-                  onClick={r.id ? () => toggle(r.id) : undefined}
-                  onKeyDown={r.id ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(r.id) } } : undefined}
-                  tabIndex={r.id ? 0 : undefined}
-                  aria-expanded={r.id ? openId === r.id : undefined}
-                >
-                  <td className="player">
-                    {r.name}
-                    {r.starter && <span className="starter" title="Starter"> *</span>}
-                  </td>
-                  {idx.map(([label, i]) => <td key={label}>{r.stats[i]}</td>)}
-                </tr>
-                {openId === r.id && (
-                  <tr className="box-expand">
-                    <td colSpan={idx.length + 1}>
-                      <PlayerSeason id={r.id} />
+      <div className="card">
+        <div className="box-scroll">
+          <table className="box-table">
+            <thead>
+              <tr>
+                <th className="player">Player</th>
+                {idx.map(([label]) => <th key={label}>{label}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <Fragment key={`${r.name}-${r.jersey}`}>
+                  <tr
+                    className={`box-row ${r.id ? 'clickable' : ''} ${openId === r.id ? 'open' : ''}`}
+                    onClick={r.id ? () => toggle(r.id) : undefined}
+                    onKeyDown={r.id ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(r.id) } } : undefined}
+                    tabIndex={r.id ? 0 : undefined}
+                    aria-expanded={r.id ? openId === r.id : undefined}
+                  >
+                    <td className="player">
+                      {r.name}
+                      {r.starter && <span className="starter" title="Starter"> *</span>}
                     </td>
+                    {idx.map(([label, i]) => <td key={label}>{r.stats[i]}</td>)}
                   </tr>
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
+                  {openId === r.id && (
+                    <tr className="box-expand">
+                      <td colSpan={idx.length + 1}>
+                        <PlayerSeason id={r.id} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p className="section-note" style={{ marginTop: 10 }}>
           Sorted by points · * started · DNPs omitted · tap a player for their season sheet.
         </p>

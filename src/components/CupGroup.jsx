@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CUP_GROUP, CUP_SPONSOR, TEAM_ABBR } from '../config.js'
 import { fetchCupGroup } from '../api.js'
 import { gameDate, gameTime, track } from '../format.js'
@@ -22,12 +22,24 @@ export default function CupGroup({ schedule }) {
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
 
+  // Like the scoreboard: a failed refresh keeps the last good table (and logs);
+  // only a failed first load shows the error.
+  const hasGroup = useRef(false)
   useEffect(() => {
     if (!visible) return
     let alive = true
     fetchCupGroup(opponentIds, key)
-      .then((g) => { if (alive) setGroup(g) })
-      .catch((err) => { if (alive) setError(err.message) })
+      .then((g) => {
+        if (!alive) return
+        hasGroup.current = true
+        setGroup(g)
+        setError(null)
+      })
+      .catch((err) => {
+        if (!alive) return
+        if (hasGroup.current) console.error('Cup table refresh failed:', err)
+        else setError(err.message)
+      })
     return () => { alive = false }
     // opponentIds is derived from the schedule; `key` covers result changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
