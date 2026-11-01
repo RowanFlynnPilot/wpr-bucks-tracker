@@ -396,6 +396,23 @@ html, body {
 
 .hero-actions a.copy-link { text-decoration: none; display: inline-block; }
 
+/* Live: the quarter line, the margin so far, and each team's leaders. */
+.live-game { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--cream-deep); }
+.live-game .linescore { margin-bottom: 10px; }
+.live-leaders { margin-top: 8px; display: grid; gap: 6px; }
+.live-leader-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 0.8rem; }
+.ll-team {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: #96703f;
+  min-width: 78px;
+}
+.ll-cats { display: flex; gap: 4px 12px; flex-wrap: wrap; color: var(--ink-soft); }
+.ll-cats b { font-family: var(--font-data); color: var(--ink); }
+.live-note { font-size: 0.8rem; color: var(--ink-soft); margin: 10px 0 0; }
+
 /* ---------- Season pulse ---------- */
 
 /* A hairline-divided strip, not a row of boxes. */
@@ -1036,6 +1053,7 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 
 .injury-row { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--cream-deep); }
 .injury-row:last-of-type { border-bottom: none; }
+.group-label.injury-opp { margin-top: 18px; }
 .injury-row img, .injury-gap { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--cream-deep); flex-shrink: 0; }
 .injury-row .who { flex: 1; min-width: 0; }
 .injury-row .name { font-weight: 600; font-size: 0.9rem; }
@@ -1340,6 +1358,7 @@ a.game-row-link:hover .bs-hint { text-decoration: underline; }
 .cov-title { display: block; font-weight: 700; font-size: 0.9rem; line-height: 1.4; }
 .cov-excerpt { display: block; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.5; margin-top: 2px; }
 .cov-date { display: block; font-family: var(--font-data); font-size: 0.7rem; color: var(--ink-soft); margin-top: 4px; }
+.cov-more { display: inline-block; margin-top: 12px; text-decoration: none; }
 
 .copy-link {
   font-family: var(--font-body);

@@ -65,13 +65,20 @@ backups and the afternoon refresh. The keepalive job re-enables both workflows.
   from joining the current roster: the roster only holds current players, and
   mid-season departures keep their season leads (Giannis led 2025–26 FG% after
   being traded — the ref approach renders him; a roster join drops him silently).
-- `fetchInjuries()` — core API injuries, athlete refs resolved. Empty = healthy.
+- `fetchInjuries(teamId)` — core API injuries, athlete refs resolved, cached
+  per team (the Bucks', plus the next opponent's on the Schedule tab). Empty =
+  healthy.
 - `fetchGameDetail(eventId)` — the summary endpoint, per game on demand, cached
   in a module Map: linescores, the score-flow timeline (Bucks margin on a real
   elapsed-time axis — the actual scoreboard, deliberately not ESPN's win-prob
   model), chartable shots with shooter ids (free throws carry INT_MIN sentinel
   coords — filtered), scoring plays for runs, game leaders, team stats, and the
   Bucks player box (ids match play participants).
+  `fetchLiveGameDetail(eventId)` is the same load, **never cached**, for the
+  live hero (`LiveGame`: linescore, score flow, each team's leaders), refetched
+  whenever the 60s schedule refresh brings a new score or clock. The summary
+  has no live clock of its own, so the chart's end point comes from the
+  scoreboard-overlaid event (`elapsedSec(period, clock)`; ScoreFlow's `nowSec`).
 - `fetchPlayerSeason(athleteId)` — season averages per athlete (cached), for
   the stat sheets that unfold under box-score rows.
 - `fetchOutlook()` — ESPN's Basketball Power Index for the Bucks (core API
@@ -88,7 +95,9 @@ backups and the afternoon refresh. The keepalive job re-enables both workflows.
   Events carry `cupRound` (the note after "NBA Cup - ") and `opponent.id`.
 - `src/wpr.js` — WPR's own Bucks coverage via WordPress REST (third external
   API, same rules: browser fetch, keyless, CORS-open). Coverage is an
-  enhancement: the section renders nothing on failure.
+  enhancement: the section renders nothing on failure. Brewers stories get
+  filed under the Bucks category (adjacent in WordPress's list), so posts
+  tagged "Milwaukee Brewers" are excluded at the query (`excludeTagId`).
 
 ## Season rollover
 

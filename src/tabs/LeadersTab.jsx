@@ -91,16 +91,20 @@ export default function LeadersTab({ standings }) {
   )
 }
 
+// ESPN's stat values are display strings ("1"), so compare as numbers.
+const count = (n, one, many) => `${n} ${Number(n) === 1 ? one : many}`
+
 // The one-line season context under each leader — tuned per category.
 function subline(category, s) {
   if (!s) return null
+  const games = count(s.gamesPlayed, 'game', 'games')
   switch (category) {
-    case 'pointsPerGame': return `${s.fieldGoalPct}% FG · ${s.gamesPlayed} games`
-    case 'reboundsPerGame': return `${s.doubleDouble} ${s.doubleDouble === 1 ? 'double-double' : 'double-doubles'} · ${s.gamesPlayed} ${s.gamesPlayed === 1 ? 'game' : 'games'}`
-    case 'assistsPerGame': return `${s.avgMinutes} min/game · ${s.gamesPlayed} games`
-    case 'stealsPerGame': return `${s.avgMinutes} min/game · ${s.gamesPlayed} games`
-    case 'blocksPerGame': return `${s.avgRebounds} reb/game · ${s.gamesPlayed} games`
-    case 'fieldGoalPercentage': return `${s.avgPoints} pts/game · ${s.gamesPlayed} games`
+    case 'pointsPerGame': return `${s.fieldGoalPct}% FG · ${games}`
+    case 'reboundsPerGame': return `${count(s.doubleDouble, 'double-double', 'double-doubles')} · ${games}`
+    case 'assistsPerGame': return `${s.avgMinutes} min/game · ${games}`
+    case 'stealsPerGame': return `${s.avgMinutes} min/game · ${games}`
+    case 'blocksPerGame': return `${s.avgRebounds} reb/game · ${games}`
+    case 'fieldGoalPercentage': return `${s.avgPoints} pts/game · ${games}`
     default: return null
   }
 }

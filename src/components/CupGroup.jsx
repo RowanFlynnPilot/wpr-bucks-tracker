@@ -16,7 +16,9 @@ export default function CupGroup({ schedule }) {
   const visible = groupGames.length > 0 &&
     Date.now() < lastGroupGame.date.getTime() + SHOW_DAYS_AFTER * 86_400_000
   const opponentIds = groupGames.map((g) => g.opponent.id)
-  const key = schedule.events.filter((e) => e.final).length // refetch after each Bucks final
+  // Refetch after each Bucks final, and hourly for the rest of the group's
+  // results (the page re-renders on every schedule refresh, so the hour ticks over).
+  const key = `${schedule.events.filter((e) => e.final).length}|${Math.floor(Date.now() / 3_600_000)}`
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
 

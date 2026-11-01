@@ -3,6 +3,7 @@ import { TEAM_ABBR, TEAM_LOGO, WPR_TRACKER_PAGE } from '../config.js'
 import { countdown, ctDaysFromToday, gameDate, gameTime, liveLabel, todayWord, track } from '../format.js'
 import { buildRecapContext, recapFor } from '../recaps.js'
 import { pickFeatured, postseasonState } from '../scheduleFacts.js'
+import LiveGame from './LiveGame.jsx'
 
 // The featured game, picked like the mini scoreboard (see pickFeatured): live;
 // then last night's final until the next game's day; then the next game; then
@@ -56,7 +57,8 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
   const [top, bottom] = featured.home ? [other, bucks] : [bucks, other]
 
   // Share the reader's page, not the iframe's github.io address, and say what
-  // the game is: "Rockets 132, Bucks 100" / "Bucks vs Cavaliers — Sat, Oct 31, 7:00 PM CT".
+  // the game is: "Rockets 132, Bucks 100" / "Live: Bucks 58, Cavaliers 76 (Q3 · 5:12)" /
+  // "Bucks vs Cavaliers — Sat, Oct 31, 7:00 PM CT".
   const share = async () => {
     track('Share', { mode })
     const embedded = window.self !== window.top
@@ -66,7 +68,9 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
       ? (featured.won
         ? `Bucks ${featured.ourScore}, ${featured.opponent.name} ${featured.theirScore}${ot}`
         : `${featured.opponent.name} ${featured.theirScore}, Bucks ${featured.ourScore}${ot}`)
-      : `Bucks ${featured.home ? 'vs' : 'at'} ${featured.opponent.name} — ${gameDate(featured.date)}, ${gameTime(featured.date)} CT`
+      : featured.live
+        ? `Live: Bucks ${featured.ourScore}, ${featured.opponent.name} ${featured.theirScore} (${liveLabel(featured)})`
+        : `Bucks ${featured.home ? 'vs' : 'at'} ${featured.opponent.name} — ${gameDate(featured.date)}, ${gameTime(featured.date)} CT`
     const payload = { title: 'The Bucks, by the numbers — Wausau Pilot & Review', text, url }
     // A dismissed share sheet is a normal outcome; a blocked clipboard (an
     // embed without clipboard-write) is logged rather than thrown at the reader.
@@ -114,6 +118,8 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
           <TeamLine team={bottom} />
         </>
       )}
+
+      {mode === 'live' && <LiveGame game={featured} />}
 
       <div className="hero-context">
         {mode === 'last' && (

@@ -37,7 +37,7 @@ export async function fetchCoverage(limit = 4) {
   if (!WPR_NEWS?.base) return []
   const fields = 'date,link,title,excerpt,jetpack_featured_media_url,_links,_embedded'
   const url =
-    `${WPR_NEWS.base}/posts?categories=${WPR_NEWS.categoryId}` +
+    `${WPR_NEWS.base}/posts?categories=${WPR_NEWS.categoryId}&tags_exclude=${WPR_NEWS.excludeTagId}` +
     `&orderby=date&order=desc&per_page=${limit}&_embed=wp:featuredmedia&_fields=${fields}`
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
   if (!res.ok) throw new Error(`WPR REST ${res.status}`)

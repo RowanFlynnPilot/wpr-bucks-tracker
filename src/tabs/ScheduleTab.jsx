@@ -77,7 +77,7 @@ export default function ScheduleTab({ schedule, onOpenGame }) {
         </Section>
       )}
 
-      <InjuryReport />
+      <InjuryReport nextGame={upcoming[0] ?? null} />
 
       <Coverage />
     </>

@@ -385,19 +385,21 @@ async function loadCupGroup(opponentIds) {
 
 // ---------- Injuries ----------
 
-let injuriesPromise = null
+// Per team: the Bucks' report, plus the next opponent's on the Schedule tab.
+const injuriesByTeam = new Map()
 
-export function fetchInjuries() {
-  if (!injuriesPromise) {
-    injuriesPromise = loadInjuries()
-    injuriesPromise.catch(() => { injuriesPromise = null })
+export function fetchInjuries(teamId = TEAM_ID) {
+  if (!injuriesByTeam.has(teamId)) {
+    const p = loadInjuries(teamId)
+    p.catch(() => injuriesByTeam.delete(teamId))
+    injuriesByTeam.set(teamId, p)
   }
-  return injuriesPromise
+  return injuriesByTeam.get(teamId)
 }
 
 // An empty report is data (everyone's healthy), not an error.
-async function loadInjuries() {
-  const list = await getJson(`${CORE}/teams/${TEAM_ID}/injuries?limit=50`)
+async function loadInjuries(teamId) {
+  const list = await getJson(`${CORE}/teams/${teamId}/injuries?limit=50`)
   const items = await Promise.all(
     (list.items ?? []).map(async (item) => {
       const injury = await getJson(item.$ref.replace(/^http:/, 'https:'))
@@ -463,6 +465,35 @@ export function fetchGameDetail(eventId) {
   return gameDetails.get(eventId)
 }
 
+// A game in progress changes every possession, so its summary is never cached
+// (and never lands in the finals cache above).
+export function fetchLiveGameDetail(eventId) {
+  return loadGameDetail(eventId)
+}
+
+// NBA game time: quarters are 12 minutes, overtimes 5. The clock arrives as
+// "M:SS" above a minute and "SS.d" under one; a break ("0.0") is the period's end.
+const periodSec = (p) => (p <= 4 ? 720 : 300)
+
+export function elapsedSec(period, clock) {
+  let remaining
+  if (!clock) remaining = 0
+  else if (clock.includes(':')) {
+    const [m, s] = clock.split(':')
+    remaining = Number(m) * 60 + Number(s)
+  } else remaining = parseFloat(clock)
+  if (!Number.isFinite(remaining)) remaining = 0
+  let base = 0
+  for (let q = 1; q < period; q++) base += periodSec(q)
+  return base + (periodSec(period) - remaining)
+}
+
+export function gameLengthSec(periods) {
+  let total = 0
+  for (let q = 1; q <= periods; q++) total += periodSec(q)
+  return total
+}
+
 async function loadGameDetail(eventId) {
   const d = await getJson(`${SITE}/site/v2/sports/basketball/nba/summary?event=${eventId}`)
   const comp = d.header.competitions[0]
@@ -478,28 +509,14 @@ async function loadGameDetail(eventId) {
   })
 
   // The score flow: Bucks margin after every scoring play, on a real elapsed-
-  // time axis (quarters are 12 minutes, OTs are 5). The clock arrives as
-  // "M:SS" above a minute and "SS.d" under one.
+  // time axis (see elapsedSec).
   const plays = d.plays ?? []
-  const periodSec = (p) => (p <= 4 ? 720 : 300)
-  const elapsed = (periodNum, clock) => {
-    let remaining
-    if (!clock) remaining = 0
-    else if (clock.includes(':')) {
-      const [m, s] = clock.split(':')
-      remaining = Number(m) * 60 + Number(s)
-    } else remaining = parseFloat(clock)
-    if (!Number.isFinite(remaining)) remaining = 0
-    let base = 0
-    for (let q = 1; q < periodNum; q++) base += periodSec(q)
-    return base + (periodSec(periodNum) - remaining)
-  }
   const maxPeriod = Math.max(4, ...plays.map((p) => p.period?.number ?? 0))
-  const totalSec = Array.from({ length: maxPeriod }, (_, i) => periodSec(i + 1)).reduce((a, b) => a + b, 0)
+  const totalSec = gameLengthSec(maxPeriod)
   const flow = plays
     .filter((p) => p.scoringPlay && p.scoreValue > 0)
     .map((p) => ({
-      t: elapsed(p.period?.number ?? 1, p.clock?.displayValue ?? ''),
+      t: elapsedSec(p.period?.number ?? 1, p.clock?.displayValue ?? ''),
       margin: usHome ? p.homeScore - p.awayScore : p.awayScore - p.homeScore,
     }))
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { WPR_NEWS } from '../config.js'
 import { fetchCoverage } from '../wpr.js'
 import { track } from '../format.js'
 import Section from './Section.jsx'
@@ -35,6 +36,15 @@ export default function Coverage() {
           </span>
         </a>
       ))}
+      <a
+        className="copy-link cov-more"
+        href={WPR_NEWS.archive}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => track('Coverage Click', { link: 'archive' })}
+      >
+        More Bucks coverage <span aria-hidden="true">→</span>
+      </a>
     </Section>
   )
 }

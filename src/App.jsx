@@ -164,7 +164,9 @@ export default function App() {
             onClick={() => switchTab(t.id)}
           >
             {t.short
-              ? <><span className="hide-phone">{t.label}</span><span className="phone-only" aria-hidden="true">{t.short}</span></>
+              // Exactly one of the two is displayed at any width, so each is
+              // also the button's accessible name there — no aria-hidden.
+              ? <><span className="hide-phone">{t.label}</span><span className="phone-only">{t.short}</span></>
               : t.label}
           </button>
         ))}

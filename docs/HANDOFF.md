@@ -180,10 +180,17 @@ Dashboard: plausible.io, site `rowanflynnpilot.github.io`.
 - **Widget shows an error on load** — ESPN blip; it retries itself every 2
   minutes. A reload usually clears it immediately.
 - **Score seems stale during a game** — it refreshes every 60s while live; check
-  the "Updated X min ago" stamp under the masthead.
+  the "Updated X min ago" stamp under the masthead. During a game the top card
+  also carries the quarter-by-quarter line, the margin chart so far and each
+  team's leaders, refreshed on the same beat.
 - **A postponed game shows up / a game is missing** — ESPN sometimes leaves
   postponed shells in the schedule; the tracker filters `STATUS_POSTPONED` and
   `STATUS_CANCELED`. If ESPN mislabels one, it clears when they fix their feed.
+- **A Brewers (or other non-Bucks) story in "WPR Bucks coverage"** — the
+  section reads the *Milwaukee Bucks* category and skips anything tagged
+  *Milwaukee Brewers*. A story in the wrong category without that tag still
+  shows; fix its category in WordPress (Brewers stories have been landing in
+  *Milwaukee Bucks* — the two sit next to each other in the category list).
 - **Injury report shows "Couldn't load" / newsroom section missing** — the
   injury report says so in place and the newsroom section hides itself (it's an
   enhancement); both return on the next page load once the feed recovers.

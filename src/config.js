@@ -81,11 +81,15 @@ export const DEMO_MODE =
 export let WATCH_VENUES = []
 
 // WPR's own Bucks coverage (WordPress REST). categoryId is the site's
-// "Milwaukee Bucks" category; archive is where bookmarks/copies point when
-// the tracker is embedded. null base disables the section.
+// "Milwaukee Bucks" category. Brewers stories land in it too — the two sit
+// side by side in WordPress's category list — so posts tagged "Milwaukee
+// Brewers" (excludeTagId) are dropped; every miscategorized one checked in Oct
+// 2026 carried that tag. archive is the category page, linked under the
+// stories. null base disables the section.
 export const WPR_NEWS = {
   base: 'https://wausaupilotandreview.com/wp-json/wp/v2',
   categoryId: 567085021,
+  excludeTagId: 567003946,
   archive: 'https://wausaupilotandreview.com/category/milwaukee-bucks/',
 }
 

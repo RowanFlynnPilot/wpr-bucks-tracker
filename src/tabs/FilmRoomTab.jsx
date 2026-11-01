@@ -4,6 +4,7 @@ import { fetchGameDetail, fetchPlayerSeason } from '../api.js'
 import { gameDate, periodLabel, track } from '../format.js'
 import { buildRecapContext, recapFor } from '../recaps.js'
 import Section from '../components/Section.jsx'
+import Linescore from '../components/Linescore.jsx'
 import ScoreFlow from '../components/ScoreFlow.jsx'
 import ShotChart from '../components/ShotChart.jsx'
 
@@ -37,9 +38,12 @@ export default function FilmRoomTab({ schedule, gameId, onPickGame }) {
   const game = finals.find((g) => g.id === selected)
   const recap = game ? recapFor(game, buildRecapContext(schedule.events)) : null
 
-  // Each player's game shooting line for the shot-chart filter, off the box score.
+  // Each player's game shooting line for the shot-chart filter, off the box
+  // score — leading scorers first, the same order as the box score table.
+  const ptsIdx = detail?.boxScore?.names.indexOf('PTS') ?? -1
   const shotPlayers = (detail?.boxScore?.rows ?? [])
     .filter((r) => r.id)
+    .sort((a, b) => (parseInt(b.stats[ptsIdx], 10) || 0) - (parseInt(a.stats[ptsIdx], 10) || 0))
     .map((r) => {
       const col = (name) => {
         const i = detail.boxScore.names.indexOf(name)
@@ -100,33 +104,6 @@ export default function FilmRoomTab({ schedule, gameId, onPickGame }) {
         </>
       )}
     </>
-  )
-}
-
-function Linescore({ detail }) {
-  const { away, home } = detail
-  const quarters = Math.max(away.quarters.length, home.quarters.length)
-  if (quarters === 0) return null
-  const label = (i) => (i < 4 ? `Q${i + 1}` : i === 4 ? 'OT' : `${i - 3}OT`)
-  return (
-    <table className="linescore">
-      <thead>
-        <tr>
-          <th></th>
-          {Array.from({ length: quarters }, (_, i) => <th key={i}>{label(i)}</th>)}
-          <th>T</th>
-        </tr>
-      </thead>
-      <tbody>
-        {[away, home].map((t) => (
-          <tr key={t.abbr} className={t.abbr === TEAM_ABBR ? 'us' : ''}>
-            <td className="team">{t.name}</td>
-            {Array.from({ length: quarters }, (_, i) => <td key={i}>{t.quarters[i] ?? ''}</td>)}
-            <td className="total">{t.score}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
   )
 }
 

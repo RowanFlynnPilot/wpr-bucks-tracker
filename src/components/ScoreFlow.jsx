@@ -9,18 +9,23 @@ import { useChartWidth } from '../useChartWidth.js'
 
 const PAD = { top: 16, right: 14, bottom: 26, left: 40 }
 
-export default function ScoreFlow({ flow, totalSec, maxPeriod }) {
+// `nowSec` is where the line stops: the final horn for a final, the current
+// clock for a game in progress (the rest of the axis is game still to play).
+export default function ScoreFlow({ flow, totalSec, maxPeriod, nowSec = totalSec, compact = false }) {
   const [ref, width] = useChartWidth()
   if (flow.length === 0) {
     return <div className="race-chart" ref={ref}><p className="section-note">No scoring timeline for this one.</p></div>
   }
   const high = Math.max(0, ...flow.map((p) => p.margin))
   const low = Math.min(0, ...flow.map((p) => p.margin))
+  // Never end the line before the last basket ESPN has logged.
+  const endSec = Math.max(nowSec, flow[flow.length - 1].t)
   return (
     <div className="race-chart" ref={ref}>
       {width > 0 && (
-        <ScoreSvg flow={flow} totalSec={totalSec} maxPeriod={maxPeriod}
-          high={high} low={low} W={width} H={width < 560 ? 220 : 260} />
+        <ScoreSvg flow={flow} totalSec={totalSec} maxPeriod={maxPeriod} endSec={endSec}
+          live={endSec < totalSec}
+          high={high} low={low} W={width} H={compact ? 160 : width < 560 ? 220 : 260} />
       )}
       <div className="chart-legend">
         <span>Bucks lead above the hardwood line</span>
@@ -30,7 +35,7 @@ export default function ScoreFlow({ flow, totalSec, maxPeriod }) {
   )
 }
 
-function ScoreSvg({ flow, totalSec, maxPeriod, high, low, W, H }) {
+function ScoreSvg({ flow, totalSec, maxPeriod, endSec, live, high, low, W, H }) {
   const maxAbs = Math.max(6, ...flow.map((p) => Math.abs(p.margin)))
   const x = (t) => PAD.left + (t / totalSec) * (W - PAD.left - PAD.right)
   const y = (m) => PAD.top + ((maxAbs - m) / (2 * maxAbs)) * (H - PAD.top - PAD.bottom)
@@ -42,8 +47,8 @@ function ScoreSvg({ flow, totalSec, maxPeriod, high, low, W, H }) {
     line += ` L${x(p.t).toFixed(1)},${y(prev).toFixed(1)} L${x(p.t).toFixed(1)},${y(p.margin).toFixed(1)}`
     prev = p.margin
   }
-  line += ` L${x(totalSec).toFixed(1)},${y(prev).toFixed(1)}`
-  const area = `${line} L${x(totalSec).toFixed(1)},${y(0).toFixed(1)} L${x(0).toFixed(1)},${y(0).toFixed(1)} Z`
+  line += ` L${x(endSec).toFixed(1)},${y(prev).toFixed(1)}`
+  const area = `${line} L${x(endSec).toFixed(1)},${y(0).toFixed(1)} L${x(0).toFixed(1)},${y(0).toFixed(1)} Z`
 
   // Quarter boundaries (Q1–4 are 12 minutes, OTs 5).
   const boundaries = []
@@ -63,7 +68,7 @@ function ScoreSvg({ flow, totalSec, maxPeriod, high, low, W, H }) {
 
   return (
       <svg viewBox={`0 0 ${W} ${H}`} role="img"
-        aria-label={`The score margin through the game — biggest Bucks lead ${high}, worst deficit ${low}, final margin ${final >= 0 ? '+' : ''}${final}`}>
+        aria-label={`The score margin through the game — biggest Bucks lead ${high}, worst deficit ${low}, ${live ? 'current' : 'final'} margin ${final >= 0 ? '+' : ''}${final}`}>
         <defs>
           <clipPath id="sf-above"><rect x="0" y="0" width={W} height={y(0)} /></clipPath>
           <clipPath id="sf-below"><rect x="0" y={y(0)} width={W} height={H - y(0)} /></clipPath>
@@ -102,8 +107,9 @@ function ScoreSvg({ flow, totalSec, maxPeriod, high, low, W, H }) {
         <path d={line} fill="none" stroke="var(--team)" strokeWidth="2.5"
           strokeLinejoin="round" strokeLinecap="round" />
 
-        <circle cx={x(totalSec)} cy={y(final)} r="4" fill="var(--team)" />
-        <text x={W - PAD.right} y={y(final) + (final >= 0 ? -10 : 18)} textAnchor="end"
+        <circle cx={x(endSec)} cy={y(final)} r="4" fill="var(--team)" />
+        <text x={live ? x(endSec) : W - PAD.right} y={y(final) + (final >= 0 ? -10 : 18)}
+          textAnchor={live ? 'middle' : 'end'}
           fontFamily="var(--font-data)" fontSize="12" fontWeight="700" fill="var(--team)">
           {final >= 0 ? `+${final}` : final}
         </text>
