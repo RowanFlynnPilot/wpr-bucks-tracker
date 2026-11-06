@@ -26,6 +26,7 @@ const word = (n) => WORDS[n] ?? `${n}`
 export function buildRecapContext(events) {
   const map = new Map()
   let wins = 0, losses = 0, run = 0, runType = null
+  let cupWins = 0, cupLosses = 0 // NBA Cup group play — the Bucks' own four games
   const series = new Map() // playoff opponent → { wins, losses }
   for (const g of events.filter((e) => e.final)) {
     if (g.stage === 'playoffs') {
@@ -41,9 +42,32 @@ export function buildRecapContext(events) {
     else losses++
     if (runType === (g.won ? 'W' : 'L')) run++
     else { runType = g.won ? 'W' : 'L'; run = 1 }
-    map.set(g.id, { wins, losses, streakType: runType, streakCount: run, entering })
+    let cup = null
+    if (g.cupRound === 'Group Play') {
+      if (g.won) cupWins++
+      else cupLosses++
+      cup = { wins: cupWins, losses: cupLosses }
+    }
+    map.set(g.id, { wins, losses, streakType: runType, streakCount: run, entering, cup })
   }
   return map
+}
+
+// Group play is four games a team; the line never claims who advances (that
+// takes the whole group's results and tiebreakers — the Cup table's job).
+function cupLine(cup, won, seed) {
+  const played = cup.wins + cup.losses
+  if (played === 1) {
+    return pick([
+      `${won ? 'A winning' : 'A losing'} start to NBA Cup group play.`,
+      `That opens NBA Cup group play ${cup.wins}–${cup.losses}.`,
+    ], seed)
+  }
+  if (played === 4) return `Cup group play ends at ${cup.wins}–${cup.losses}.`
+  return pick([
+    `That's ${cup.wins}–${cup.losses} in NBA Cup group play.`,
+    `The Bucks are ${cup.wins}–${cup.losses} in Cup group play.`,
+  ], seed)
 }
 
 // First sentence: the outcome, by margin bucket. `s` is the score winner-first
@@ -123,7 +147,8 @@ function bucket(won, margin) {
 }
 
 // Second sentence: series, Cup, streak or record context — or nothing, so
-// lengths vary too.
+// lengths vary too. Priority: a snapped 3+ game run, then the Cup group
+// record on Cup nights, then the current streak, then (sometimes) the record.
 function followUp(game, ctx, seed) {
   if (game.stage === 'cupFinal') {
     return game.won ? 'The Bucks are NBA Cup champions.' : `The NBA Cup goes to the ${game.opponent.name}.`
@@ -136,9 +161,12 @@ function followUp(game, ctx, seed) {
     if (sw === sl) return `The series is tied ${sw}–${sl}.`
     return sw > sl ? `The Bucks lead the series ${sw}–${sl}.` : `The Bucks trail the series ${sw}–${sl}.`
   }
-  const { wins, losses, streakCount, entering } = ctx
+  const { wins, losses, streakCount, entering, cup } = ctx
   // A result that ends a 3+ game run the other way is the story.
-  if (entering.type && entering.type !== (game.won ? 'W' : 'L') && entering.count >= 3) {
+  const snapped = entering.type && entering.type !== (game.won ? 'W' : 'L') && entering.count >= 3
+  // Otherwise, on a Cup night, the group record is.
+  if (cup && !snapped) return cupLine(cup, game.won, seed)
+  if (snapped) {
     return game.won
       ? pick([
           `That snapped a ${word(entering.count)}-game skid.`,

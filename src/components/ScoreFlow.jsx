@@ -29,7 +29,9 @@ export default function ScoreFlow({ flow, totalSec, maxPeriod, nowSec = totalSec
       )}
       <div className="chart-legend">
         <span>Bucks lead above the hardwood line</span>
-        <span>biggest lead +{high} · worst deficit {low}</span>
+        <span>
+          {high > 0 ? `biggest lead +${high}` : 'never led'} · {low < 0 ? `worst deficit ${low}` : 'never trailed'}
+        </span>
       </div>
     </div>
   )

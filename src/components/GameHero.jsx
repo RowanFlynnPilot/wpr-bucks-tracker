@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { TEAM_ABBR, TEAM_LOGO, WPR_TRACKER_PAGE } from '../config.js'
-import { countdown, ctDaysFromToday, gameDate, gameTime, liveLabel, todayWord, track } from '../format.js'
+import { countdown, ctDaysFromToday, gameDate, gameLabel, gameTime, liveLabel, todayWord, track } from '../format.js'
 import { buildRecapContext, recapFor } from '../recaps.js'
 import { pickFeatured, postseasonState } from '../scheduleFacts.js'
 import LiveGame from './LiveGame.jsx'
@@ -153,7 +153,7 @@ export default function GameHero({ schedule, standings, onOpenGame }) {
         {/* The morning after: the result leads, the next game rides along. */}
         {pick.mode === 'recent' && nextGame && (
           <div className="hero-last">
-            Next up: {gameDate(nextGame.date)} · {gameTime(nextGame.date)} CT {nextGame.home ? 'vs' : 'at'} the {nextGame.opponent.name}
+            Next up{gameLabel(nextGame) ? ` (${gameLabel(nextGame)})` : ''}: {gameDate(nextGame.date)} · {gameTime(nextGame.date)} CT {nextGame.home ? 'vs' : 'at'} the {nextGame.opponent.name}
             {nextGame.tv ? ` · ${nextGame.tv}` : ''}
           </div>
         )}

@@ -14,11 +14,17 @@ sources; ESPN is not one. Adding a caching layer here would be overengineering.
 The GitHub Action builds and deploys; its schedules exist **only** to re-render
 the newsletter digest **image** (`dist/digest.png`, baked at build time, never
 committed) — email can't run the live widget. An image for email is not a data
-cache; don't let it become one. The morning bake is timed by
-`morning-digest.yml` (triggered loosely overnight, sleeps until 5:00 AM Central,
-then dispatches the deploy) because GitHub's scheduled runs fired 3–6 hours late
-in Oct 2026 and the newsletter builds at 6:58 AM; `deploy.yml`'s own crons are
-backups and the afternoon refresh. The keepalive job re-enables both workflows.
+cache; don't let it become one. The image's only reader is the 7:02 AM
+morning newsletter (built 6:58). GitHub's scheduled runs fire hours late (3–6 h
+in Oct 2026, 6–8 h in Nov), so the 5:00 AM Central bake is dispatched by WPR's
+punctual Cloudflare scheduler Worker (`wpr-scheduler-worker.js` in
+`wpr-newsletter`; its token needs Actions access on this repo).
+`morning-digest.yml` is the backup: evening triggers spread out so whichever
+lands within the job's 6-hour limit sleeps until 5:00 and dispatches the
+deploy. `deploy.yml`'s own crons are extra refreshes. The keepalive job
+re-enables both workflows. A bake that lands mid-game shows the game as "Next
+up", never a live score (Nov 4: a 7:03 PM bake put "Live now · Q1 · 11–28"
+into the next morning's send).
 
 ## Engineering rules (house style — applies to every change)
 
@@ -156,8 +162,11 @@ relay `*.espn.com` requests through Node's `fetch` with `page.route` and add
 - `src/recaps.js` — 1–2 sentence game recaps generated from the schedule alone
   (margin buckets × seeded template banks; hash of the game id keeps each
   game's wording stable across renders). Every claim must stay derivable from
-  real data — score, margin, OT, home/road, running record, streaks. Surfaced
-  on schedule rows, the hero, and the film room.
+  real data — score, margin, OT, home/road, running record, streaks, the
+  Bucks' own NBA Cup group record (never who advances — that's the Cup table's
+  job). Surfaced on schedule rows, the hero, the film room and the digest.
+- `gameLabel()` in format.js — the one label compact surfaces (digest, mini,
+  the hero's "Next up" line) put on a game: its stage tag, or "NBA Cup".
 - **Which game leads** — `pickFeatured()` in `src/scheduleFacts.js`, shared by
   the hero and the mini: live; then last night's final **until the day of the
   next game** (the morning after, the result is the story — with a "Next up"
@@ -187,7 +196,8 @@ relay `*.espn.com` requests through Node's `fetch` with `page.route` and add
   is in or `data-error` on a feed failure — the renderer waits on those and
   refuses to bake an error card. Explicit dates only, never "Tonight": the
   GitHub cron can drift past the 6:58 AM newsletter build, and a stale bake must
-  stay true.
+  stay true. For the same reason image mode never shows a live game — a game
+  in progress is "Next up" (the web view keeps its live section).
 
 ## Refresh & live behavior (index + minis)
 

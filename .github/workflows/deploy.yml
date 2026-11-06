@@ -12,12 +12,14 @@ on:
   workflow_dispatch:
   schedule:
     # The MORNING bake is NOT timed here: GitHub fires scheduled runs hours late
-    # (3–6 h in Oct 2026), so morning-digest.yml waits overnight and dispatches
-    # this workflow at exactly 5:00 AM Central, two hours before the 7:02 AM
-    # newsletter. These ticks are a mid-morning backup and an afternoon refresh.
-    # Cron is UTC, no DST; in CDT they land ~6:43 AM / ~3:43 PM Central (often
-    # later). Odd minutes on purpose: GitHub's scheduler is most congested at
-    # the top and half of the hour.
+    # (3–6 h in Oct 2026, 6–8 h in Nov). WPR's Cloudflare scheduler Worker
+    # dispatches this workflow at 5:00 AM Central (wpr-newsletter's
+    # wpr-scheduler-worker.js), with morning-digest.yml as the backup waiter —
+    # two hours before the 7:02 AM newsletter, the image's only reader. These
+    # ticks are extra refreshes; landing mid-game is harmless (the image shows
+    # a game in progress as "Next up", never a live score). Cron is UTC, no DST.
+    # Odd minutes on purpose: GitHub's scheduler is most congested at the top
+    # and half of the hour.
     - cron: '43 11 * * *'
     - cron: '43 20 * * *'
 

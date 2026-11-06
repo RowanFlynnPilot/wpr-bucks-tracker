@@ -11,7 +11,7 @@ is in `README.md`; the non-negotiable architecture decision is in `CLAUDE.md`.
 | Full tracker | `/wpr-bucks-tracker/` | The WPR Bucks page (`/milwaukee-bucks/`) — iframe, auto-resizes |
 | Mini scoreboard | `/wpr-bucks-tracker/mini.html` | Sidebar / in-article card |
 | Mini standings | `/wpr-bucks-tracker/mini-standings.html` | Sidebar / in-article card |
-| Newsletter digest image | `tools.wausaupilotandreview.com/wpr-bucks-tracker/digest.png` | The morning newsletter's sports slot (replaced the Brewers card, Nov 2026) — re-baked at 5:00 AM Central sharp (morning-digest.yml) plus ~6:45 AM / ~3:45 PM backup ticks |
+| Newsletter digest image | `tools.wausaupilotandreview.com/wpr-bucks-tracker/digest.png` | The morning newsletter's sports slot (replaced the Brewers card, Nov 2026) — re-baked at 5:00 AM Central by WPR's Cloudflare scheduler Worker, with GitHub-scheduled backups (see "Newsletter digest") |
 
 Embed snippets for all of them are in `README.md` (copy-paste into a WordPress
 **Custom HTML** block). Two behaviors worth knowing:
@@ -70,8 +70,17 @@ East around the Bucks' seed with a one-line seed-race note, any sold game-day
 partner, and "Presented by" the title sponsor. Dates are always explicit (never
 "Tonight") so an image that missed a re-bake is still true.
 
-The image re-bakes twice daily (before the morning and afternoon sends) via the
-deploy workflow. If it ever looks stale, run the **Deploy to GitHub Pages** action
+Only the morning edition carries it (the afternoon edition has the Packers
+card). The image re-bakes at **5:00 AM Central**, triggered by WPR's Cloudflare
+scheduler Worker (`wpr-scheduler-worker.js` in `wpr-newsletter` — the same clock
+that starts the 6:58 AM build). GitHub's own scheduled runs fire hours late, so
+they're only backups. The scheduler's GitHub token must include
+`wpr-bucks-tracker` (Actions: Read and write) — if that token is ever
+regenerated (it expires Aug 1, 2027), re-add this repo or the morning image goes
+stale. A re-bake that happens to land during a game shows that game as "Next
+up", never a live score.
+
+If the image ever looks stale, run the **Deploy to GitHub Pages** action
 manually (Actions tab → Run workflow) — that re-renders it. A failed re-bake turns
 the run red rather than shipping an error card.
 

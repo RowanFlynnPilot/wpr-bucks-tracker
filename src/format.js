@@ -9,6 +9,11 @@ export function ctDaysFromToday(date) {
   return Math.round((Date.parse(ctDay(date)) - Date.parse(ctDay(new Date()))) / 86_400_000)
 }
 
+// The one label a game carries on compact surfaces (digest image, mini card):
+// its stage ("Playoffs", "Play-In", "NBA Cup Final"), or "NBA Cup" for group
+// and knockout games. The full tracker shows the stage and Cup chips separately.
+export const gameLabel = (e) => e.tag ?? (e.cup ? 'NBA Cup' : null)
+
 // "Tonight" from 5 PM on, otherwise "Today" — only for a game on today's date.
 export function todayWord(date) {
   const hour = Number(date.toLocaleString('en-US', { timeZone: CT, hour: 'numeric', hour12: false }))

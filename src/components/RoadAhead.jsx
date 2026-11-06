@@ -1,14 +1,16 @@
 import { VENUE } from '../config.js'
 import { gameDate } from '../format.js'
+import { scheduleFacts } from '../scheduleFacts.js'
 import Section from './Section.jsx'
 
-// Strength of what's left: remaining opponents' combined winning percentage,
-// plus the next eight opponents at a glance. With no games left there is no
-// road ahead. Opponents who haven't played yet carry no record, so they're
-// left out of the combined mark — and before anyone has played, the section
-// just shows the first eight dates.
+// Strength of what's left in the regular season: remaining opponents' combined
+// winning percentage, plus the next eight opponents at a glance. With no
+// regular-season games left (or in the postseason) there is no road ahead.
+// Opponents who haven't played yet carry no record, so they're left out of the
+// combined mark — and before anyone has played, the section just shows the
+// first eight dates.
 export default function RoadAhead({ schedule, standings }) {
-  const upcoming = schedule.events.filter((e) => !e.final && !e.live)
+  const upcoming = schedule.events.filter((e) => !e.final && !e.live && e.stage === 'regular')
   if (upcoming.length === 0) return null
 
   const league = [...standings.east, ...standings.west]
@@ -20,7 +22,13 @@ export default function RoadAhead({ schedule, standings }) {
   const rated = withRows.filter((x) => x.row.played > 0)
   const homeLeft = upcoming.filter((g) => g.home && !g.neutral).length
   const next = withRows.slice(0, 8)
-  const counts = `${upcoming.length} games left, ${homeLeft} of them at ${VENUE}.`
+  // The calendar runs short until NBA Cup group play sets each team's last two
+  // dates, so "left" adds the unscheduled games to the scheduled ones.
+  const { toBeSet } = scheduleFacts(schedule.events)
+  const left = upcoming.length + toBeSet
+  const counts = toBeSet > 0
+    ? `${left} games left — ${upcoming.length} on the calendar, ${homeLeft} of them at ${VENUE}; the last ${toBeSet === 2 ? 'two' : toBeSet} get set after NBA Cup group play.`
+    : `${left} games left, ${homeLeft} of them at ${VENUE}.`
   const note = rated.length > 0
     ? `Remaining opponents play ${(rated.reduce((s, x) => s + x.row.winPctValue, 0) / rated.length).toFixed(3).replace(/^0/, '')} ball · ${counts}`
     : counts

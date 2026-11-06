@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { TEAM_ABBR, TEAM_LOGO } from '../config.js'
 import { fetchSchedule, fetchStandings } from '../api.js'
-import { ctDaysFromToday, gameDate, gameTime, liveLabel, todayWord } from '../format.js'
+import { ctDaysFromToday, gameDate, gameLabel, gameTime, liveLabel, todayWord } from '../format.js'
 import { pickFeatured } from '../scheduleFacts.js'
 import { useRefreshingData } from '../useRefreshingData.js'
 import { destination, trackMiniClick } from './mini-shared.js'
@@ -45,10 +45,10 @@ function MiniScoreboard() {
   const opp = { logo: featured.opponent.logo, name: featured.opponent.name, pts: scheduled ? record(featured.opponent.abbr) : featured.theirScore, won: featured.final && !featured.won }
   const [top, bottom] = featured.home ? [opp, bucks] : [bucks, opp]
 
-  const tag = featured.tag ? ` · ${featured.tag}` : ''
+  const tag = gameLabel(featured) ? ` · ${gameLabel(featured)}` : ''
   const tv = featured.tv ? ` · ${featured.tv}` : ''
   const next = pick.next
-  const meta = pick.mode === 'live' ? `${liveLabel(featured)}${tv}`
+  const meta = pick.mode === 'live' ? `${liveLabel(featured)}${tv}${tag}`
     : scheduled ? (gameDay ? `${featured.tv ?? 'Tip-off'}${tag}` : `Tip-off ${gameTime(featured.date)} CT${tv}${tag}`)
     // The morning after, the next game rides along under the final.
     : pick.mode === 'recent' && next ? `Next: ${gameDate(next.date)} · ${gameTime(next.date)} CT ${next.home ? 'vs' : 'at'} the ${next.opponent.name}`

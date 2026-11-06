@@ -61,6 +61,9 @@ export default function Outlook({ standings }) {
         ESPN Basketball Power Index projection{asOf}: results so far plus ESPN's player
         ratings, simulated across the rest of the season. "Make the playoffs" counts getting
         there through the play-in.
+        {/* ESPN's own figure, kept as published — but a simulated 0% isn't elimination. */}
+        {[outlook.playoffs, outlook.top6, outlook.playIn].includes('0%') &&
+          " A 0% means none of ESPN's simulated seasons got there — not that it's mathematically out of reach."}
       </p>
     </Section>
   )

@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { PLAYOFF_LINE, PLAY_IN_LINE, SPONSOR, TEAM_ABBR, TEAM_LOGO, VENUE, WATCH_VENUES } from '../config.js'
 import { fetchGameDetail, fetchSchedule, fetchStandings } from '../api.js'
-import { gameDate, gameTime, liveLabel } from '../format.js'
+import { gameDate, gameLabel, gameTime, liveLabel } from '../format.js'
 import { buildRecapContext, recapFor } from '../recaps.js'
 import { seedRace } from '../standingsText.js'
 import { destination, trackMiniClick } from './mini-shared.js'
@@ -81,8 +81,13 @@ function MiniDigest() {
 
   const { schedule, standings, last, detail } = data
   const events = schedule.events
-  const live = events.find((e) => e.live) ?? null
-  const next = events.find((e) => !e.final && !e.live) ?? null
+  // The image's only reader is the next morning's newsletter, so a live score
+  // in it is always stale — a bake that lands mid-game (GitHub's late crons did,
+  // Nov 4: "Live now · Q1 · 11–28" went out at 7:02 AM) shows the game as
+  // "Next up", exactly like the pre-game image that afternoon. The web view
+  // keeps the live section.
+  const live = imageMode ? null : events.find((e) => e.live) ?? null
+  const next = events.find((e) => !e.final && (imageMode || !e.live)) ?? null
   const recaps = buildRecapContext(events)
   const preseason = !events.some((e) => e.final || e.live)
   const partners = imageMode ? WATCH_VENUES.filter((v) => v.url).slice(0, 2) : []
@@ -96,14 +101,14 @@ function MiniDigest() {
 
       {live && (
         <div className="dg-sec">
-          <div className="dg-kicker">Live now · {liveLabel(live)}{live.tag ? ` · ${live.tag}` : ''}</div>
+          <div className="dg-kicker">Live now · {liveLabel(live)}{gameLabel(live) ? ` · ${gameLabel(live)}` : ''}</div>
           <ScoreLockup game={live} />
         </div>
       )}
 
       {!live && last && (
         <div className="dg-sec">
-          <div className="dg-kicker">Last game · {last.tag ? `${last.tag} · ` : ''}{gameDate(last.date)}</div>
+          <div className="dg-kicker">Last game · {gameLabel(last) ? `${gameLabel(last)} · ` : ''}{gameDate(last.date)}</div>
           <ScoreLockup game={last} />
           <p className="dg-recap">{recapFor(last, recaps)}</p>
           {detail && performers(detail).map((p) => (
@@ -123,7 +128,7 @@ function MiniDigest() {
       {next && (
         <div className="dg-sec">
           <div className="dg-kicker">
-            {preseason && next.stage === 'regular' ? 'Opening night' : 'Next up'} · {next.tag ? `${next.tag} · ` : ''}
+            {preseason && next.stage === 'regular' ? 'Opening night' : 'Next up'} · {gameLabel(next) ? `${gameLabel(next)} · ` : ''}
             {gameDate(next.date)} · {gameTime(next.date)} CT
           </div>
           <div className="dg-lockup next">
